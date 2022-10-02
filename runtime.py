@@ -1,6 +1,8 @@
 import sys
-from lexer import CCByteLexer
-from parser import CCByteParser
+from bytelexer import CCByteLexer
+from actionscripttobytetranspiler import CCByteTranspiler
+from bytetoactionscripttranspiler import CCActionScriptTranspiler
+
 
 def repl(lexer, parser):
     print('Type "exit" to quit the REPL')
@@ -19,9 +21,9 @@ def repl(lexer, parser):
 
 
 def run(lexer, parser, text):
-    parser.parse(lexer.tokenize(text))
-    # for tok in lexer.tokenize(text):
-    #     print(tok)
+    lexed = lexer.tokenize(text)
+    # for tok in lexed: print(tok)
+    parser.parse(lexed)
 
 
 def runFile(lexer, parser, fileName):
@@ -33,12 +35,13 @@ def runFile(lexer, parser, fileName):
 
 if __name__ == '__main__':
     lexer = CCByteLexer()
-    parser = CCByteParser()
+    # parser = CCByteTranspiler()
+    parser = CCActionScriptTranspiler()
     print('---')
-    print('Castle Crashers Byte Lexer & Parser v0.0.1')
+    print('Castle Crashers Byte Lexer & Parser v0.0.2')
     print('---')
 
     if len(sys.argv) > 1:
         runFile(lexer, parser, sys.argv[1])
     else:
-        repl(lexer)
+        repl(lexer, parser)
