@@ -1,18 +1,16 @@
 from sly import Parser
 from bytelexer import ByteLexer
-from util import toByte
 
 
-class ByteTranspiler(Parser):
+class PCodeTranspiler(Parser):
     tokens = ByteLexer.tokens
 
     def __init__(self, names: dict = None):
         self.names = names or {}
-        self.stack = []
-        self.byteArray = []
+        self.constantPool = []
 
-    def addBytes(self, byte):
-        self.byteArray.append(toByte(byte))
+    def error(self, t):
+        print(f'[{self}] Illegal character {t}')
 
     @_('expr expr')
     def expr(self, p):
@@ -20,218 +18,224 @@ class ByteTranspiler(Parser):
 
     @_('END')
     def expr(self, p):
-        self.addBytes(0x00)
+        print("}")
 
     @_('UNDEFINED')
     def expr(self, p):
-        self.addBytes(0x03)
+        print("undefined")
 
     @_('REGISTER')
     def expr(self, p):
-        self.addBytes(0x04)
+        print("register%d" % p.REGISTER)
 
     @_('BOOLEAN')
     def expr(self, p):
-        self.addBytes(0x05)
+        print("true" if p.BOOLEAN else "false")
 
     @_('FLOAT')
     def expr(self, p):
-        self.addBytes(0x06)
+        print(p.FLOAT)
 
     @_('NUMBER')
     def expr(self, p):
-        self.addBytes(0x07)
+        print(p.NUMBER)
 
     @_('PROPERTY1')
     def expr(self, p):
-        self.addBytes(0x08)
+        print(self.constantPool[p.PROPERTY1])
 
     @_('PROPERTY2')
     def expr(self, p):
-        self.addBytes(0x09)
+        print(self.constantPool[p.PROPERTY2])
 
     @_('SUBSTRACT')
     def expr(self, p):
-        self.addBytes(0x0b)
+        print("Substract")
 
     @_('MULTIPLY')
     def expr(self, p):
-        self.addBytes(0x0c)
+        print("Multiply")
 
     @_('DIVIDE')
     def expr(self, p):
-        self.addBytes(0x0d)
+        print("Divide")
 
     @_('AND')
     def expr(self, p):
-        self.addBytes(0x10)
+        print("And")
 
     @_('OR')
     def expr(self, p):
-        self.addBytes(0x11)
+        print("Or")
 
     @_('NOT')
     def expr(self, p):
-        self.addBytes(0x12)
+        print("Not")
 
     @_('POP')
     def expr(self, p):
-        self.addBytes(0x17)
+        print("Pop")
 
     @_('TOINT')
     def expr(self, p):
-        self.addBytes(0x18)
+        print("ToInteger")
 
     @_('GETVAR')
     def expr(self, p):
-        self.addBytes(0x1c)
+        print("GetVariable")
 
     @_('SETVAR')
     def expr(self, p):
-        self.addBytes(0x1d)
+        print("SetVariable")
 
     @_('SETPROP')
     def expr(self, p):
-        self.addBytes(0x23)
+        print("SetProperty")
 
     @_('REMOVESPRITE')
     def expr(self, p):
-        self.addBytes(0x25)
+        print("RemoveSprite")
 
     @_('TRACE')
     def expr(self, p):
-        self.addBytes(0x26)
+        print("Trace")
 
     @_('RANDOM')
     def expr(self, p):
-        self.addBytes(0x30)
+        print("Random")
 
     @_('GETTIME')
     def expr(self, p):
-        self.addBytes(0x34)
+        print("GetTime")
 
     @_('CALLFUNC')
     def expr(self, p):
-        self.addBytes(0x3d)
+        print("CallFunction")
 
     @_('RETURN')
     def expr(self, p):
-        self.addBytes(0x3e)
+        print("Return")
 
     @_('MODULO')
     def expr(self, p):
-        self.addBytes(0x3f)
+        print("Modulo")
 
     @_('NEW')
     def expr(self, p):
-        self.addBytes(0x40)
+        print("New")
 
     @_('ADD2')
     def expr(self, p):
-        self.addBytes(0x47)
+        print("Add2")
 
     @_('LESSTHAN')
     def expr(self, p):
-        self.addBytes(0x48)
+        print("Less2")
 
     @_('EQUALS')
     def expr(self, p):
-        self.addBytes(0x49)
+        print("Equals2")
 
     @_('PUSHDUPLICATE')
     def expr(self, p):
-        self.addBytes(0x4c)
+        print("Push")
 
     @_('GETMEMBER')
     def expr(self, p):
-        self.addBytes(0x4e)
+        print("GetMember")
 
     @_('SETMEMBER')
     def expr(self, p):
-        self.addBytes(0x4f)
+        print("SetMember")
 
     @_('INCREMENT')
     def expr(self, p):
-        self.addBytes(0x50)
+        print("Increment")
 
     @_('DECREMENT')
     def expr(self, p):
-        self.addBytes(0x51)
+        print("Decrement")
 
     @_('CALLMETHOD')
     def expr(self, p):
-        self.addBytes(0x52)
+        print("CallMethod")
 
     @_('BITAND')
     def expr(self, p):
-        self.addBytes(0x60)
+        print("BitAnd")
 
     @_('BITOR')
     def expr(self, p):
-        self.addBytes(0x61)
+        print("BitOr")
 
     @_('BITXOR')
     def expr(self, p):
-        self.addBytes(0x62)
+        print("BitXor")
 
     @_('BITLSHIFT')
     def expr(self, p):
-        self.addBytes(0x63)
+        print("BitLShift")
 
     @_('BITRSHIFT')
     def expr(self, p):
-        self.addBytes(0x64)
+        print("BitRShift")
 
     @_('BITRSHIFTUNSIGNED')
     def expr(self, p):
-        self.addBytes(0x65)
+        # TODO
+        print("BitRShift?")
 
     @_('STRICTEQUAL')
     def expr(self, p):
-        self.addBytes(0x66)
+        print("StrictEquals")
 
     @_('GREATERTHAN')
     def expr(self, p):
-        self.addBytes(0x67)
+        print("Greater")
 
     @_('UNKNOWN')
     def expr(self, p):
-        self.addBytes(0x70)
+        print("Unknown_70")
 
     @_('STORE')
     def expr(self, p):
-        self.addBytes(0x87)
+        print("StoreRegister %d" % p.STORE)
 
     @_('DEFINEDICTIONARY')
     def expr(self, p):
-        self.addBytes(0x88)
+        self.constantPool = p.DEFINEDICTIONARY
+        # TODO REMOVE DEV RESTRICTION
+        # print("var ConstantPool = { %s };" % ','.join(self.constantPool))
+        print("ConstantPool %s ..." % ' '.join(self.constantPool[:5]))
 
     @_('GOTOLABEL')
     def expr(self, p):
-        self.addBytes(0x8c)
+        print("GoToLabel")
 
     @_('DEFINEFUNC2')
     def expr(self, p):
-        print(p.DEFINEFUNC2)
-        self.addBytes(0x8e)
+        values = p.DEFINEFUNC2
+        print("DefineFunction2 %s %d %d false true true false true false true false false %s {" %
+              (values['name'], values['paramLength'], values['regCount'], ' '.join(values['params'])))
 
     @_('PUSH')
     def expr(self, p):
-        print(p.PUSH)
-        self.addBytes(0x96)
+        print("Push")
 
     @_('JUMP')
     def expr(self, p):
-        self.addBytes(0x99)
+        print("Jump")
 
     @_('GETURL2')
     def expr(self, p):
-        self.addBytes(0x9a)
+        print("GetURL2")
 
     @_('DEFINEFUNC')
     def expr(self, p):
-        self.addBytes(0x9b)
+        values = p.DEFINEFUNC2
+        print("DefineFunction %s %d %s {" %
+              (values['name'], values['paramLength'], ' '.join(values['params'])))
 
     @_('IF')
     def expr(self, p):
-        self.addBytes(0x9d)
+        print("If")

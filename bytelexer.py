@@ -1,40 +1,14 @@
 from sly import Lexer
-from util import splitBytes, byteArrayToString, byteLength
+from util import splitBytes, byteArrayToString, byteLength, splitBytesOn
 
 
-class CCByteLexer(Lexer):
+class ByteLexer(Lexer):
     def getNextBytes(self, num):
         length = num * 3
         nextBytes = self.text[self.index:self.index + length]
         value = splitBytes(nextBytes)
         self.index += length
         return value
-
-    def getStrings(self, arr):
-        params = []
-        while True:
-            try:
-                index = arr.index('00', 1)
-            except ValueError:
-                params.append(arr[1:])
-                break
-            newArr = arr[:index]
-            params.append(newArr[1:])
-            arr = arr[len(newArr):]
-        return list(map(lambda x: "\"%s\"" % byteArrayToString(x), params))
-
-    def getParams(self, arr):
-        params = []
-        while True:
-            try:
-                index = arr.index('00', 1)
-            except ValueError:
-                params.append(arr[2:])
-                break
-            newArr = arr[:index]
-            params.append(newArr[2:])
-            arr = arr[len(newArr):]
-        return map(byteArrayToString, params)
 
     @_(r'\n+')
     def ignore_newline(self, t):
@@ -138,7 +112,7 @@ class CCByteLexer(Lexer):
     @_(r"87")
     def STORE(self, t):
         nextBytes = self.getNextBytes(3)
-        t.value = nextBytes[::-1]
+        t.value = int(nextBytes[2], 16)
         return t
 
     @_(r"88")
@@ -146,8 +120,8 @@ class CCByteLexer(Lexer):
         nextBytes = self.getNextBytes(2)[::-1]
         length = byteLength(''.join(nextBytes))
         nextBytes = self.getNextBytes(length)
-        params = self.getStrings(nextBytes[1:-1])
-        t.value = params
+        params = splitBytesOn(nextBytes[2:-1])
+        t.value = list(map(lambda x: "\"%s\"" % byteArrayToString(x), params))
         return t
 
     @_(r"8[c|C]")
@@ -163,12 +137,20 @@ class CCByteLexer(Lexer):
         nextBytes = self.getNextBytes(2)
         length = byteLength(nextBytes[0])
         nextBytes = self.getNextBytes(length)
-        index = nextBytes.index('00')
-        fnName = byteArrayToString(nextBytes[:index])
-        params = self.getParams(nextBytes[index+5:-3])
+        splitted = splitBytesOn(nextBytes)
+        fnName = byteArrayToString(splitted[0])
+        paramLength = int(splitted[1][0], 16)
+        regCount = int(splitted[2][0], 16)
+        params = splitted[3:-1]
+        # TODO Fix 0 params and param register
+        params[0] = params[0][1:]
+        fnLength = int(splitted[-1][0], 16)
         t.value = {
             'name': fnName,
-            'params': params,
+            'paramLength': paramLength,
+            'regCount': regCount,
+            'params': map(byteArrayToString, params),
+            'functionLength': fnLength,
         }
         self.index += 1
         return t
@@ -196,12 +178,16 @@ class CCByteLexer(Lexer):
         nextBytes = self.getNextBytes(2)
         length = byteLength(nextBytes[0])
         nextBytes = self.getNextBytes(length)
-        index = nextBytes.index('00')
-        fnName = byteArrayToString(nextBytes[:index])
-        params = self.getParams(nextBytes[index+5:-3])
+        splitted = splitBytesOn(nextBytes)
+        fnName = byteArrayToString(splitted[0])
+        paramLength = int(splitted[1], 16)
+        params = self.getParams(splitted[2:-1])
+        fnLength = int(splitted[-1], 16)
         t.value = {
             'name': fnName,
+            'paramLength': paramLength,
             'params': params,
+            'functionLength': fnLength,
         }
         return t
 

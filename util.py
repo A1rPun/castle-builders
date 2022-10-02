@@ -1,5 +1,5 @@
-def splitBytes(string):
-    return string.strip().split(" ")
+def splitBytes(splitter):
+    return splitter.strip().split(" ")
 
 
 def byteArrayToString(byteArray):
@@ -12,3 +12,15 @@ def byteLength(string):
 
 def toByte(byte):
     return "%0.2x" % byte
+
+
+def splitBytesOn(byteArray, splitter="00"):
+    newList = []
+    chunk = []
+    for byte in byteArray:
+        if byte == splitter:
+            newList.append(chunk)
+            chunk = []
+        else:
+            chunk.append(byte)
+    return newList

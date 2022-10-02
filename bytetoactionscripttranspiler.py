@@ -1,10 +1,9 @@
 from sly import Parser
-from bytelexer import CCByteLexer
+from bytelexer import ByteLexer
 
 
-class CCActionScriptTranspiler(Parser):
-    # debugfile = 'parser.out'
-    tokens = CCByteLexer.tokens
+class ActionScriptTranspiler(Parser):
+    tokens = ByteLexer.tokens
 
     def __init__(self, names: dict = None):
         self.names = names or {}
@@ -108,7 +107,7 @@ class CCActionScriptTranspiler(Parser):
 
     @_('GETTIME')
     def expr(self, p):
-        print("GetTime")
+        print("GetTime()")
 
     @_('CALLFUNC')
     def expr(self, p):
@@ -200,14 +199,15 @@ class CCActionScriptTranspiler(Parser):
 
     @_('STORE')
     def expr(self, p):
-        print("StoreRegister")
+        print("_loc%d_ =" % p.STORE)
 
     @_('DEFINEDICTIONARY')
     def expr(self, p):
         self.constantPool = p.DEFINEDICTIONARY
         # TODO REMOVE DEV RESTRICTION [:10]
         # print("var ConstantPool = { %s };" % ','.join(self.constantPool))
-        print("var ConstantPool = { %s , ... };" % ','.join(self.constantPool[:5]))
+        print("var ConstantPool = { %s , ... };" %
+              ','.join(self.constantPool[:5]))
 
     @_('GOTOLABEL')
     def expr(self, p):
@@ -229,7 +229,7 @@ class CCActionScriptTranspiler(Parser):
 
     @_('GETURL2')
     def expr(self, p):
-        print("GETURL2")
+        print("loadMovie()")
 
     @_('DEFINEFUNC')
     def expr(self, p):
@@ -239,4 +239,4 @@ class CCActionScriptTranspiler(Parser):
 
     @_('IF')
     def expr(self, p):
-        print("if")
+        print("if (%s) {" % "expression")

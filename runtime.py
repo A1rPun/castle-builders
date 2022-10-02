@@ -1,7 +1,8 @@
 import sys
-from bytelexer import CCByteLexer
-from actionscripttobytetranspiler import CCByteTranspiler
-from bytetoactionscripttranspiler import CCActionScriptTranspiler
+from bytelexer import ByteLexer
+from bytetopcodetranspiler import PCodeTranspiler
+from actionscripttobytetranspiler import ByteTranspiler
+from bytetoactionscripttranspiler import ActionScriptTranspiler
 
 
 def repl(lexer, parser):
@@ -34,11 +35,12 @@ def runFile(lexer, parser, fileName):
 
 
 if __name__ == '__main__':
-    lexer = CCByteLexer()
-    # parser = CCByteTranspiler()
-    parser = CCActionScriptTranspiler()
+    lexer = ByteLexer()
+    parser = PCodeTranspiler()
+    # parser = ByteTranspiler()
+    # parser = ActionScriptTranspiler()
     print('---')
-    print('Castle Crashers Byte Lexer & Parser v0.0.2')
+    print('Castle Crashers Byte Lexer & Parser v0.0.3')
     print('---')
 
     if len(sys.argv) > 1:
