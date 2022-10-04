@@ -36,9 +36,9 @@ def runFile(lexer, parser, fileName):
 
 if __name__ == '__main__':
     lexer = ByteLexer()
-    parser = PCodeTranspiler()
+    # parser = PCodeTranspiler()
     # parser = ByteTranspiler()
-    # parser = ActionScriptTranspiler()
+    parser = ActionScriptTranspiler()
     print('---')
     print('Castle Crashers Byte Lexer & Parser v0.0.3')
     print('---')

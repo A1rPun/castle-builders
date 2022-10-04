@@ -1,25 +1,21 @@
-from sly import Lexer
+from baselexer import BaseLexer
 from util import splitBytes, byteArrayToString, byteLength, splitBytesOn
+from structlexer import StructLexer
 
+class ByteLexer(BaseLexer):
+    def getValues(self, values):
+        lexer = StructLexer()
+        lexed = lexer.tokenize(' '.join(values))
+        return lexed
 
-class ByteLexer(Lexer):
-    def getNextBytes(self, num):
-        length = num * 3
-        nextBytes = self.text[self.index:self.index + length]
-        value = splitBytes(nextBytes)
-        self.index += length
-        return value
-
-    @_(r'\n+')
-    def ignore_newline(self, t):
-        self.lineno += t.value.count('\n')
-
-    def error(self, t):
-        print(f'[{self.index}] Illegal character {t.value[0]!r}')
-        self.index += 1
+    def getParam(self, value):
+        return {
+            'register': int(value[0], 16),
+            'param': byteArrayToString(value[1:]),
+        }
 
     tokens = {
-        END, UNDEFINED, BOOLEAN, REGISTER, FLOAT, NUMBER, PROPERTY1, PROPERTY2, # 00s
+        END, # 00s
         AND, OR, SUBSTRACT, MULTIPLY, DIVIDE, NOT, POP, TOINT, GETVAR, SETVAR,  # 10s
         SETPROP, REMOVESPRITE, TRACE,  # 20s
         RANDOM, GETTIME, CALLFUNC, RETURN, MODULO,  # 30s
@@ -30,45 +26,9 @@ class ByteLexer(Lexer):
         STORE, DEFINEDICTIONARY, GOTOLABEL, DEFINEFUNC2,  # 80s
         PUSH, JUMP, GETURL2, DEFINEFUNC, IF  # 90s
     }
-    ignore = ' \t'
 
-    END = r'00'
-    UNDEFINED = r'03'
-
-    @_(r"04")
-    def REGISTER(self, t):
-        nextBytes = self.getNextBytes(1)
-        t.value = int(nextBytes[0], 16)
-        return t
-
-    @_(r"05")
-    def BOOLEAN(self, t):
-        nextBytes = self.getNextBytes(1)
-        t.value = nextBytes[0] == "01"
-        return t
-
-    @_(r"06")
-    def FLOAT(self, t):
-        nextBytes = self.getNextBytes(8)[::-1]
-        t.value = float.fromhex(''.join(nextBytes))
-        return t
-
-    @_(r"07")
-    def NUMBER(self, t):
-        nextBytes = self.getNextBytes(4)[::-1]
-        t.value = int(''.join(nextBytes), 16)
-        return t
-
-    @_(r"08")
-    def PROPERTY1(self, t):
-        nextBytes = self.getNextBytes(1)
-        t.value = int(nextBytes[0], 16)
-        return t
-
-    @_(r"09")
-    def PROPERTY2(self, t):
-        nextBytes = self.getNextBytes(2)[::-1]
-        t.value = int(''.join(nextBytes), 16)
+    @_(r"00")
+    def END(self, t):
         return t
 
     SUBSTRACT = r'0[b|B]'
@@ -121,7 +81,7 @@ class ByteLexer(Lexer):
         length = byteLength(''.join(nextBytes))
         nextBytes = self.getNextBytes(length)
         params = splitBytesOn(nextBytes[2:-1])
-        t.value = list(map(lambda x: "\"%s\"" % byteArrayToString(x), params))
+        t.value = list(map(byteArrayToString, params))
         return t
 
     @_(r"8[c|C]")
@@ -142,23 +102,23 @@ class ByteLexer(Lexer):
         paramLength = int(splitted[1][0], 16)
         regCount = int(splitted[2][0], 16)
         params = splitted[3:-1]
-        # TODO Fix 0 params and param register
-        params[0] = params[0][1:]
+        # TODO Fix 0 params split issue
         fnLength = int(splitted[-1][0], 16)
         t.value = {
             'name': fnName,
             'paramLength': paramLength,
             'regCount': regCount,
-            'params': map(byteArrayToString, params),
+            'params': list(map(self.getParam, params)),
             'functionLength': fnLength,
         }
-        self.index += 1
         return t
 
     @_(r"96")
     def PUSH(self, t):
         nextBytes = self.getNextBytes(2)
-        t.value = int(nextBytes[0], 16)
+        length = int(nextBytes[0], 16)
+        nextBytes = self.getNextBytes(length)
+        t.value = self.getValues(nextBytes)
         return t
 
     @_(r"99")
@@ -181,7 +141,7 @@ class ByteLexer(Lexer):
         splitted = splitBytesOn(nextBytes)
         fnName = byteArrayToString(splitted[0])
         paramLength = int(splitted[1], 16)
-        params = self.getParams(splitted[2:-1])
+        # params = self.getParams(splitted[2:-1])
         fnLength = int(splitted[-1], 16)
         t.value = {
             'name': fnName,
@@ -194,5 +154,7 @@ class ByteLexer(Lexer):
     @_(r"9[d|D]")
     def IF(self, t):
         nextBytes = self.getNextBytes(4)
-        t.value = nextBytes
+        # TODO nextBytes[3] nextBytes[2]
+        length = byteLength(nextBytes[2])
+        t.value = length
         return t

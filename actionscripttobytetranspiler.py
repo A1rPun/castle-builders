@@ -22,34 +22,6 @@ class ByteTranspiler(Parser):
     def expr(self, p):
         self.addBytes(0x00)
 
-    @_('UNDEFINED')
-    def expr(self, p):
-        self.addBytes(0x03)
-
-    @_('REGISTER')
-    def expr(self, p):
-        self.addBytes(0x04)
-
-    @_('BOOLEAN')
-    def expr(self, p):
-        self.addBytes(0x05)
-
-    @_('FLOAT')
-    def expr(self, p):
-        self.addBytes(0x06)
-
-    @_('NUMBER')
-    def expr(self, p):
-        self.addBytes(0x07)
-
-    @_('PROPERTY1')
-    def expr(self, p):
-        self.addBytes(0x08)
-
-    @_('PROPERTY2')
-    def expr(self, p):
-        self.addBytes(0x09)
-
     @_('SUBSTRACT')
     def expr(self, p):
         self.addBytes(0x0b)

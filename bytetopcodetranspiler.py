@@ -12,6 +12,31 @@ class PCodeTranspiler(Parser):
     def error(self, t):
         print(f'[{self}] Illegal character {t}')
 
+    def parseStructItem(self, item):
+        if item.type == 'STRING':
+            return item.value
+        elif item.type == 'FLOAT':
+            return str(item.value)
+        elif item.type == 'NULL':
+            return "null"
+        elif item.type == 'REGISTER':
+            return "register%d" % item.value
+        elif item.type == 'BOOLEAN':
+            return "true" if item.value else "false"
+        elif item.type == 'DOUBLE':
+            return str(item.value)
+        elif item.type == 'INTEGER':
+            return str(item.value)
+        elif item.type == 'DICTLOOKUP':
+            return "\"%s\"" % self.constantPool[item.value]
+        elif item.type == 'DICTLOOKUPLARGE':
+            return "\"%s\"" % self.constantPool[item.value]
+        return "undefined"
+
+    def parseStruct(self, struct):
+        values = map(self.parseStructItem, struct)
+        return ' '.join(values)
+
     @_('expr expr')
     def expr(self, p):
         pass
@@ -19,34 +44,6 @@ class PCodeTranspiler(Parser):
     @_('END')
     def expr(self, p):
         print("}")
-
-    @_('UNDEFINED')
-    def expr(self, p):
-        print("undefined")
-
-    @_('REGISTER')
-    def expr(self, p):
-        print("register%d" % p.REGISTER)
-
-    @_('BOOLEAN')
-    def expr(self, p):
-        print("true" if p.BOOLEAN else "false")
-
-    @_('FLOAT')
-    def expr(self, p):
-        print(p.FLOAT)
-
-    @_('NUMBER')
-    def expr(self, p):
-        print(p.NUMBER)
-
-    @_('PROPERTY1')
-    def expr(self, p):
-        print(self.constantPool[p.PROPERTY1])
-
-    @_('PROPERTY2')
-    def expr(self, p):
-        print(self.constantPool[p.PROPERTY2])
 
     @_('SUBSTRACT')
     def expr(self, p):
@@ -215,12 +212,14 @@ class PCodeTranspiler(Parser):
     @_('DEFINEFUNC2')
     def expr(self, p):
         values = p.DEFINEFUNC2
+        # TODO "\"%s\""
         print("DefineFunction2 %s %d %d false true true false true false true false false %s {" %
               (values['name'], values['paramLength'], values['regCount'], ' '.join(values['params'])))
 
     @_('PUSH')
     def expr(self, p):
-        print("Push")
+        # print(p.PUSH)
+        print("Push %s" % self.parseStruct(p.PUSH))
 
     @_('JUMP')
     def expr(self, p):
@@ -233,6 +232,7 @@ class PCodeTranspiler(Parser):
     @_('DEFINEFUNC')
     def expr(self, p):
         values = p.DEFINEFUNC2
+        # TODO "\"%s\""
         print("DefineFunction %s %d %s {" %
               (values['name'], values['paramLength'], ' '.join(values['params'])))
 
