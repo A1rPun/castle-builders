@@ -9,7 +9,7 @@ def repl(lexer, parser):
     linecount = 0
     while True:
         try:
-            text = input(f'λ({linecount}) ⇒ ')
+            text = input(f'CCBuilder({linecount}) ⇒ ')
         except EOFError:
             break
         if text:
@@ -34,7 +34,6 @@ def runFile(lexer, parser, fileName):
 if __name__ == '__main__':
     lexer = ByteLexer()
     parser = ActionScriptParser()
-    print('---')
     print('Castle Crashers Byte Lexer & Parser v0.0.4')
     print('---')
 

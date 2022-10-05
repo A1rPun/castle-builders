@@ -79,9 +79,6 @@ class ActionScriptParser(Parser):
 
     @_('END')
     def expr(self, p):
-        # for scope in self.scopes:
-        #     self.nesting_level -= 1
-        #     self.printCode("}")
         self.endScope(p.END['offset'])
 
     @_('SUBSTRACT')
@@ -123,10 +120,8 @@ class ActionScriptParser(Parser):
     def expr(self, p):
         self.endScope(p.NOT['offset'])
         test = self.stack.pop()
-        # self.printCode("YESYESFULP")
         self.stack.append(f"!{test}")
-        # TODO: Fix greater not etc.
-        # self.printCode("!")
+        # TODO: Not doesnt always fits the context so make it context aware
 
     @_('POP')
     def expr(self, p):
@@ -143,7 +138,6 @@ class ActionScriptParser(Parser):
     @_('GETVAR')
     def expr(self, p):
         self.endScope(p.GETVAR['offset'])
-        pass  # more?
 
     @_('SETVAR')
     def expr(self, p):
@@ -191,7 +185,6 @@ class ActionScriptParser(Parser):
         for i in range(0, argLength):
             args.append(self.stack.pop())
         self.stack.append(f"{fn}({','.join(args[::-1])})")
-        # TODO PRINT IF NO RESULT
 
     @_('RETURN')
     def expr(self, p):
@@ -278,7 +271,6 @@ class ActionScriptParser(Parser):
     @_('CALLMETHOD')
     def expr(self, p):
         self.endScope(p.CALLMETHOD['offset'])
-        # self.printCode(self.stack)
         fn = self.stack.pop()
         obj = self.stack.pop()
         argLength = int(float(self.stack.pop()))
@@ -286,7 +278,6 @@ class ActionScriptParser(Parser):
         for i in range(0, argLength):
             args.append(self.stack.pop())
         self.stack.append(f"{obj}.{fn}({','.join(args[::-1])})")
-        # TODO PRINT IF NO RESULT
 
     @_('BITAND')
     def expr(self, p):
@@ -335,9 +326,7 @@ class ActionScriptParser(Parser):
     @_('UNKNOWN')
     def expr(self, p):
         self.endScope(p.UNKNOWN['offset'])
-        # test = self.stack.pop()
-        # TODO: Invert statement
-        # self.stack.append(f"!({test})")
+        # TODO: Invert statements?
 
     @_('STORE')
     def expr(self, p):
@@ -351,11 +340,9 @@ class ActionScriptParser(Parser):
     def expr(self, p):
         self.endScope(p.DEFINEDICTIONARY['offset'])
         self.constantPool = p.DEFINEDICTIONARY['pool']
-        if len(self.constantPool) > 1:
-            # TODO REMOVE DEV RESTRICTION [:10]
-            # self.printCode("var ConstantPool = { %s };" % ','.join(self.constantPool))
+        if len(self.constantPool) > 0:
             self.printCode(
-                f"// var ConstantPool = {{ {', '.join(self.constantPool[:5])} , ... }};")
+                f"// var ConstantPool = {{ {', '.join(self.constantPool)} , ... }};")
 
     @_('GOTOLABEL')
     def expr(self, p):
