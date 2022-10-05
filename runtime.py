@@ -38,8 +38,6 @@ if __name__ == '__main__':
     argParser.add_argument("filename", nargs='?')
     argParser.add_argument("-p", "--pcode", action=argparse.BooleanOptionalAction)
     args = argParser.parse_args()
-    print('Castle Crashers Byte Lexer & Parser v0.0.4')
-    print('---')
     lexer = ByteLexer()
 
     if args.pcode:

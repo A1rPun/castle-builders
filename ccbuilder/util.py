@@ -14,6 +14,10 @@ def toByte(byte):
     return "%0.2x" % byte
 
 
+def boolToStr(boolean):
+    return "true" if bool(boolean) else "false"
+
+
 def splitBytesOn(byteArray, splitter="00"):
     newList = []
     chunk = []

@@ -1,5 +1,6 @@
 from sly import Parser
 from ccbuilder.bytelexer import ByteLexer
+from ccbuilder.util import boolToStr
 
 
 class ActionScriptParser(Parser):
@@ -58,7 +59,7 @@ class ActionScriptParser(Parser):
         elif item.type == 'REGISTER':
             return self.getParam(item.value)
         elif item.type == 'BOOLEAN':
-            return "true" if item.value else "false"
+            return boolToStr(item.value)
         elif item.type == 'DOUBLE':
             return str(item.value)
         elif item.type == 'INTEGER':

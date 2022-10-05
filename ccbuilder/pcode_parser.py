@@ -1,5 +1,7 @@
 from sly import Parser
 from ccbuilder.bytelexer import ByteLexer
+from ccbuilder.util import boolToStr
+from ccbuilder.funcoption import FuncOption
 
 
 class PCodeParser(Parser):
@@ -26,7 +28,7 @@ class PCodeParser(Parser):
         elif item.type == 'REGISTER':
             return "register%d" % item.value
         elif item.type == 'BOOLEAN':
-            return "true" if item.value else "false"
+            return boolToStr(item.value)
         elif item.type == 'DOUBLE':
             return str(item.value)
         elif item.type == 'INTEGER':
@@ -215,7 +217,12 @@ class PCodeParser(Parser):
     def expr(self, p):
         values = p.DEFINEFUNC2
         paramStr = ','.join(map(lambda x: f"{x['register']} \"{x['param']}\"", values['params']))
-        self.printCode(f"DefineFunction2 \"{values['name']}\" {values['paramLength']} {values['regCount']} false true true false true false true false false {paramStr} {{")
+        options = values['options']
+        optionStr = ""
+        for op in (FuncOption):
+            optionStr += f"{boolToStr(options & op.value)} "
+        optionStr += "false"
+        self.printCode(f"DefineFunction2 \"{values['name']}\" {values['paramLength']} {values['regCount']} {optionStr} {paramStr} {{")
 
     @_('PUSH')
     def expr(self, p):

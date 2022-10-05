@@ -1,6 +1,7 @@
 from ccbuilder.baselexer import BaseLexer
 from ccbuilder.util import splitBytes, byteArrayToString, hexToInt, splitBytesOn
 from ccbuilder.structlexer import StructLexer
+from ccbuilder.funcoption import FuncOption
 
 
 class ByteLexer(BaseLexer):
@@ -317,7 +318,8 @@ class ByteLexer(BaseLexer):
         paramLength = hexToInt(nextBytes[0])
         nextBytes = self.getNextBytes(2)
         regCount = hexToInt(nextBytes[1])
-        nextBytes = self.getNextBytes(2)  # TODO
+        nextBytes = self.getNextBytes(2)
+        funcOption = FuncOption(hexToInt(nextBytes[0]))
         params = self.getParams(paramLength)
         nextBytes = self.getNextBytes(2)
         fnLength = hexToInt(''.join(nextBytes[::-1]))
@@ -326,6 +328,7 @@ class ByteLexer(BaseLexer):
             'paramLength': paramLength,
             'regCount': regCount,
             'params': params,
+            'options': funcOption,
             'functionLength': fnLength,
             'offset': offset + length + 3,
         }
