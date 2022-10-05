@@ -14,7 +14,7 @@ class BaseLexer(Lexer):
         return value
 
     def getNextBytesFind(self, byte = " 00"):
-        newIndex = self.text.index(byte, self.index)
+        newIndex = self.text.index(byte, self.index + 1)
         nextBytes = self.text[self.index:newIndex]
         value = splitBytes(nextBytes)
         self.index += newIndex - self.index + 3

@@ -30,12 +30,21 @@
   - [ ] Multiple files
 - [ ] Fix Sly issues
   - [ ] WARNING: shift/reduce conflicts
+  - [ ] spaces / newlines
   - [ ] DRY code
 
 ## Usage
 
+Doesn't actually accept SWF's just yet
+
 ```
 $ python runtime.py {filename.swf}
+```
+
+P-Code
+
+```
+$ python runtime.py {filename.swf} --pcode
 ```
 
 ## Tests

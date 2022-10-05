@@ -1,6 +1,8 @@
-import sys
+import argparse
+
 from ccbuilder.bytelexer import ByteLexer
 from ccbuilder.actionscript_parser import ActionScriptParser
+from ccbuilder.pcode_parser import PCodeParser
 
 
 def repl(lexer, parser):
@@ -32,12 +34,20 @@ def runFile(lexer, parser, fileName):
 
 
 if __name__ == '__main__':
-    lexer = ByteLexer()
-    parser = ActionScriptParser()
+    argParser = argparse.ArgumentParser()
+    argParser.add_argument("filename", nargs='?')
+    argParser.add_argument("-p", "--pcode", action=argparse.BooleanOptionalAction)
+    args = argParser.parse_args()
     print('Castle Crashers Byte Lexer & Parser v0.0.4')
     print('---')
+    lexer = ByteLexer()
 
-    if len(sys.argv) > 1:
-        runFile(lexer, parser, sys.argv[1])
+    if args.pcode:
+        parser = PCodeParser()
+    else:
+        parser = ActionScriptParser()
+
+    if args.filename:
+        runFile(lexer, parser, args.filename)
     else:
         repl(lexer, parser)

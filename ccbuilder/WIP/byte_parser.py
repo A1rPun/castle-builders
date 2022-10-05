@@ -184,12 +184,10 @@ class ByteParser(Parser):
 
     @_('DEFINEFUNC2')
     def expr(self, p):
-        print(p.DEFINEFUNC2)
         self.addBytes(0x8e)
 
     @_('PUSH')
     def expr(self, p):
-        print(p.PUSH)
         self.addBytes(0x96)
 
     @_('JUMP')

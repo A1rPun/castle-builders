@@ -8,9 +8,13 @@ class PCodeParser(Parser):
     def __init__(self, names: dict = None):
         self.names = names or {}
         self.constantPool = []
+        self.code = ""
 
     def error(self, t):
         print(f'[{self}] Illegal character {t}')
+
+    def printCode(self, code):
+        self.code += f"{code}\n"
 
     def parseStructItem(self, item):
         if item.type == 'STRING':
@@ -28,9 +32,9 @@ class PCodeParser(Parser):
         elif item.type == 'INTEGER':
             return str(item.value)
         elif item.type == 'DICTLOOKUP':
-            return "\"%s\"" % self.constantPool[item.value]
+            return self.constantPool[item.value]
         elif item.type == 'DICTLOOKUPLARGE':
-            return "\"%s\"" % self.constantPool[item.value]
+            return self.constantPool[item.value]
         return "undefined"
 
     def parseStruct(self, struct):
@@ -43,199 +47,194 @@ class PCodeParser(Parser):
 
     @_('END')
     def expr(self, p):
-        print("}")
+        self.printCode("}")
 
     @_('SUBSTRACT')
     def expr(self, p):
-        print("Substract")
+        self.printCode("Substract")
 
     @_('MULTIPLY')
     def expr(self, p):
-        print("Multiply")
+        self.printCode("Multiply")
 
     @_('DIVIDE')
     def expr(self, p):
-        print("Divide")
+        self.printCode("Divide")
 
     @_('AND')
     def expr(self, p):
-        print("And")
+        self.printCode("And")
 
     @_('OR')
     def expr(self, p):
-        print("Or")
+        self.printCode("Or")
 
     @_('NOT')
     def expr(self, p):
-        print("Not")
+        self.printCode("Not")
 
     @_('POP')
     def expr(self, p):
-        print("Pop")
+        self.printCode("Pop")
 
     @_('TOINT')
     def expr(self, p):
-        print("ToInteger")
+        self.printCode("ToInteger")
 
     @_('GETVAR')
     def expr(self, p):
-        print("GetVariable")
+        self.printCode("GetVariable")
 
     @_('SETVAR')
     def expr(self, p):
-        print("SetVariable")
+        self.printCode("SetVariable")
 
     @_('SETPROP')
     def expr(self, p):
-        print("SetProperty")
+        self.printCode("SetProperty")
 
     @_('REMOVESPRITE')
     def expr(self, p):
-        print("RemoveSprite")
+        self.printCode("RemoveSprite")
 
     @_('TRACE')
     def expr(self, p):
-        print("Trace")
+        self.printCode("Trace")
 
     @_('RANDOM')
     def expr(self, p):
-        print("Random")
+        self.printCode("Random")
 
     @_('GETTIME')
     def expr(self, p):
-        print("GetTime")
+        self.printCode("GetTime")
 
     @_('CALLFUNC')
     def expr(self, p):
-        print("CallFunction")
+        self.printCode("CallFunction")
 
     @_('RETURN')
     def expr(self, p):
-        print("Return")
+        self.printCode("Return")
 
     @_('MODULO')
     def expr(self, p):
-        print("Modulo")
+        self.printCode("Modulo")
 
     @_('NEW')
     def expr(self, p):
-        print("NewObject")
+        self.printCode("NewObject")
 
     @_('ADD2')
     def expr(self, p):
-        print("Add2")
+        self.printCode("Add2")
 
     @_('LESSTHAN')
     def expr(self, p):
-        print("Less2")
+        self.printCode("Less2")
 
     @_('EQUALS')
     def expr(self, p):
-        print("Equals2")
+        self.printCode("Equals2")
 
     @_('PUSHDUPLICATE')
     def expr(self, p):
-        print("Push")
+        self.printCode("Push")
 
     @_('GETMEMBER')
     def expr(self, p):
-        print("GetMember")
+        self.printCode("GetMember")
 
     @_('SETMEMBER')
     def expr(self, p):
-        print("SetMember")
+        self.printCode("SetMember")
 
     @_('INCREMENT')
     def expr(self, p):
-        print("Increment")
+        self.printCode("Increment")
 
     @_('DECREMENT')
     def expr(self, p):
-        print("Decrement")
+        self.printCode("Decrement")
 
     @_('CALLMETHOD')
     def expr(self, p):
-        print("CallMethod")
+        self.printCode("CallMethod")
 
     @_('BITAND')
     def expr(self, p):
-        print("BitAnd")
+        self.printCode("BitAnd")
 
     @_('BITOR')
     def expr(self, p):
-        print("BitOr")
+        self.printCode("BitOr")
 
     @_('BITXOR')
     def expr(self, p):
-        print("BitXor")
+        self.printCode("BitXor")
 
     @_('BITLSHIFT')
     def expr(self, p):
-        print("BitLShift")
+        self.printCode("BitLShift")
 
     @_('BITRSHIFT')
     def expr(self, p):
-        print("BitRShift")
+        self.printCode("BitRShift")
 
     @_('BITRSHIFTUNSIGNED')
     def expr(self, p):
         # TODO
-        print("BitRShift?")
+        self.printCode("BitRShift?")
 
     @_('STRICTEQUAL')
     def expr(self, p):
-        print("StrictEquals")
+        self.printCode("StrictEquals")
 
     @_('GREATERTHAN')
     def expr(self, p):
-        print("Greater")
+        self.printCode("Greater")
 
     @_('UNKNOWN')
     def expr(self, p):
-        print("Unknown_70")
+        self.printCode("Unknown_70")
 
     @_('STORE')
     def expr(self, p):
-        print("StoreRegister %d" % p.STORE)
+        self.printCode("StoreRegister %d" % p.STORE['value'])
 
     @_('DEFINEDICTIONARY')
     def expr(self, p):
-        self.constantPool = p.DEFINEDICTIONARY
-        # TODO REMOVE DEV RESTRICTION
-        # print("var ConstantPool = { %s };" % ','.join(self.constantPool))
-        print("ConstantPool %s ..." % ' '.join(self.constantPool[:5]))
+        self.constantPool = list(map(lambda x: f"\"{x}\"", p.DEFINEDICTIONARY['pool']))
+        self.printCode(f"ConstantPool {' '.join(self.constantPool)}")
 
     @_('GOTOLABEL')
     def expr(self, p):
-        print("GoToLabel")
+        self.printCode("GoToLabel")
 
     @_('DEFINEFUNC2')
     def expr(self, p):
         values = p.DEFINEFUNC2
-        # TODO "\"%s\""
-        print("DefineFunction2 %s %d %d false true true false true false true false false %s {" %
-              (values['name'], values['paramLength'], values['regCount'], ' '.join(values['params'])))
+        paramStr = ','.join(map(lambda x: f"{x['register']} \"{x['param']}\"", values['params']))
+        self.printCode(f"DefineFunction2 \"{values['name']}\" {values['paramLength']} {values['regCount']} false true true false true false true false false {paramStr} {{")
 
     @_('PUSH')
     def expr(self, p):
-        # print(p.PUSH)
-        print("Push %s" % self.parseStruct(p.PUSH))
+        self.printCode("Push %s" % self.parseStruct(p.PUSH['value']))
 
     @_('JUMP')
     def expr(self, p):
-        print("Jump")
+        self.printCode("Jump")
 
     @_('GETURL2')
     def expr(self, p):
-        print("GetURL2")
+        self.printCode("GetURL2")
 
     @_('DEFINEFUNC')
     def expr(self, p):
-        values = p.DEFINEFUNC2
-        # TODO "\"%s\""
-        print("DefineFunction %s %d %s {" %
-              (values['name'], values['paramLength'], ' '.join(values['params'])))
+        values = p.DEFINEFUNC
+        paramStr = ','.join(map(lambda x: f"{x['register']} \"{x['param']}\"", values['params']))
+        self.printCode(f"DefineFunction \"{values['name']}\" {values['paramLength']} {paramStr} {{")
 
     @_('IF')
     def expr(self, p):
-        print("If")
+        self.printCode("If")

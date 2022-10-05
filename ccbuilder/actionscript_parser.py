@@ -12,7 +12,6 @@ class ActionScriptParser(Parser):
         self.nesting_level = 0
         self.register = []
         self.scopes = []
-        self.bytecount = 0
         self.code = ""
 
     def setParams(self, *params):
@@ -342,7 +341,7 @@ class ActionScriptParser(Parser):
         self.constantPool = p.DEFINEDICTIONARY['pool']
         if len(self.constantPool) > 0:
             self.printCode(
-                f"// var ConstantPool = {{ {', '.join(self.constantPool)} , ... }};")
+                f"// var ConstantPool = {{ {', '.join(self.constantPool)} }};")
 
     @_('GOTOLABEL')
     def expr(self, p):
