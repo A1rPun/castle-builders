@@ -1,5 +1,5 @@
 from sly import Lexer
-from util import splitBytes
+from ccbuilder.util import splitBytes
 
 
 class BaseLexer(Lexer):
@@ -11,6 +11,13 @@ class BaseLexer(Lexer):
         nextBytes = self.text[self.index:self.index + length]
         value = splitBytes(nextBytes)
         self.index += length
+        return value
+
+    def getNextBytesFind(self, byte = " 00"):
+        newIndex = self.text.index(byte, self.index)
+        nextBytes = self.text[self.index:newIndex]
+        value = splitBytes(nextBytes)
+        self.index += newIndex - self.index + 3
         return value
 
     @_(r'\n+')

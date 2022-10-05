@@ -1,5 +1,5 @@
-from baselexer import BaseLexer
-from util import splitBytes
+from ccbuilder.baselexer import BaseLexer
+from ccbuilder.util import splitBytes, hexToInt
 
 
 class StructLexer(BaseLexer):
@@ -9,7 +9,6 @@ class StructLexer(BaseLexer):
     @_(r"00")
     def STRING(self, t):
         # nextBytes = self.getNextBytes(1)
-        # t.value = int(nextBytes[0], 16)
         return t
 
     @_(r"01")
@@ -24,7 +23,7 @@ class StructLexer(BaseLexer):
     @_(r"04")
     def REGISTER(self, t):
         nextBytes = self.getNextBytes(1)
-        t.value = int(nextBytes[0], 16)
+        t.value = hexToInt(nextBytes[0])
         return t
 
     @_(r"05")
@@ -42,17 +41,17 @@ class StructLexer(BaseLexer):
     @_(r"07")
     def INTEGER(self, t):
         nextBytes = self.getNextBytes(4)[::-1]
-        t.value = int(''.join(nextBytes), 16)
+        t.value = hexToInt(''.join(nextBytes))
         return t
 
     @_(r"08")
     def DICTLOOKUP(self, t):
         nextBytes = self.getNextBytes(1)
-        t.value = int(nextBytes[0], 16)
+        t.value = hexToInt(nextBytes[0])
         return t
 
     @_(r"09")
     def DICTLOOKUPLARGE(self, t):
         nextBytes = self.getNextBytes(2)[::-1]
-        t.value = int(''.join(nextBytes), 16)
+        t.value = hexToInt(''.join(nextBytes))
         return t

@@ -1,9 +1,9 @@
 from sly import Parser
-from bytelexer import ByteLexer
-from util import toByte
+from ccbuilder.bytelexer import ByteLexer
+from ccbuilder.util import toByte
 
 
-class ByteTranspiler(Parser):
+class ByteParser(Parser):
     tokens = ByteLexer.tokens
 
     def __init__(self, names: dict = None):

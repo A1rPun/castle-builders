@@ -1,8 +1,8 @@
 from sly import Parser
-from bytelexer import ByteLexer
+from ccbuilder.bytelexer import ByteLexer
 
 
-class PCodeTranspiler(Parser):
+class PCodeParser(Parser):
     tokens = ByteLexer.tokens
 
     def __init__(self, names: dict = None):
@@ -119,7 +119,7 @@ class PCodeTranspiler(Parser):
 
     @_('NEW')
     def expr(self, p):
-        print("New")
+        print("NewObject")
 
     @_('ADD2')
     def expr(self, p):

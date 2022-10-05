@@ -1,8 +1,6 @@
 import sys
-from bytelexer import ByteLexer
-from bytetopcodetranspiler import PCodeTranspiler
-from actionscripttobytetranspiler import ByteTranspiler
-from bytetoactionscripttranspiler import ActionScriptTranspiler
+from ccbuilder.bytelexer import ByteLexer
+from ccbuilder.actionscript_parser import ActionScriptParser
 
 
 def repl(lexer, parser):
@@ -22,9 +20,8 @@ def repl(lexer, parser):
 
 
 def run(lexer, parser, text):
-    lexed = lexer.tokenize(text)
-    # for tok in lexed: print(tok)
-    parser.parse(lexed)
+    parser.parse(lexer.tokenize(text))
+    print(parser.code)
 
 
 def runFile(lexer, parser, fileName):
@@ -36,11 +33,9 @@ def runFile(lexer, parser, fileName):
 
 if __name__ == '__main__':
     lexer = ByteLexer()
-    # parser = PCodeTranspiler()
-    # parser = ByteTranspiler()
-    parser = ActionScriptTranspiler()
+    parser = ActionScriptParser()
     print('---')
-    print('Castle Crashers Byte Lexer & Parser v0.0.3')
+    print('Castle Crashers Byte Lexer & Parser v0.0.4')
     print('---')
 
     if len(sys.argv) > 1:
