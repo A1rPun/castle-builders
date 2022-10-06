@@ -14,6 +14,7 @@ class ActionScriptParser(Parser):
         self.register = []
         self.scopes = []
         self.code = ""
+        self.switch = False
 
     def setParams(self, *params):
         self.register += params
@@ -31,16 +32,16 @@ class ActionScriptParser(Parser):
     def endScope(self, newScope):
         newScopes = []
         for scope in self.scopes:
-            if scope <= newScope:
+            if not scope['type'] == 'case' and scope['offset'] <= newScope:
                 self.nesting_level -= 1
                 self.printCode("}")
             else:
                 newScopes.append(scope)
         self.scopes = newScopes
+        print(self.scopes)
 
     def setScope(self, newScope):
         self.scopes.append(newScope)
-        self.nesting_level += 1
 
     def error(self, t):
         print(f'[{self}] Illegal character {t}')
@@ -80,6 +81,7 @@ class ActionScriptParser(Parser):
     @_('END')
     def expr(self, p):
         self.endScope(p.END['offset'])
+        print(f"End byte on {p.END['offset']}")
 
     @_('SUBSTRACT')
     def expr(self, p):
@@ -312,7 +314,7 @@ class ActionScriptParser(Parser):
     @_('STRICTEQUAL')
     def expr(self, p):
         self.endScope(p.STRICTEQUAL['offset'])
-        self.printCode("==")
+        self.switch = True
 
     @_('GREATERTHAN')
     def expr(self, p):
@@ -331,18 +333,29 @@ class ActionScriptParser(Parser):
     @_('STORE')
     def expr(self, p):
         self.endScope(p.STORE['offset'])
+        register = p.STORE['value']
         value = self.stack.pop()
-        param = f"_loc{p.STORE['value']}_"
-        self.printCode(f"var {param} = {value};")
-        self.setParams({'register': p.STORE['value'], 'param': param})
+        if register == 0 and not p.STORE['modifier']:
+            self.printCode(f"switch ({value})")
+            self.printCode("{")
+            self.setScope({
+                'type': 'switch',
+                'offset': 99999999,
+            })
+            self.nesting_level += 1
+            param = value
+        else:
+            param = f"_loc{register}_"
+            self.printCode(f"var {param} = {value};")
+        self.setParams({'register': register, 'param': param})
 
     @_('DEFINEDICTIONARY')
     def expr(self, p):
         self.endScope(p.DEFINEDICTIONARY['offset'])
         self.constantPool = p.DEFINEDICTIONARY['pool']
-        if len(self.constantPool) > 0:
-            self.printCode(
-                f"// var ConstantPool = {{ {', '.join(self.constantPool)} }};")
+        # if len(self.constantPool) > 0:
+        #     self.printCode(
+        #         f"// var ConstantPool = {{ {', '.join(self.constantPool)} }};")
 
     @_('GOTOLABEL')
     def expr(self, p):
@@ -357,7 +370,11 @@ class ActionScriptParser(Parser):
         self.printCode(f"function {values['name']}({paramStr})")
         self.printCode("{")
         self.setParams(*values['params'])
-        self.setScope(values['offset'] + values['functionLength'])
+        self.setScope({
+            'type': 'function',
+            'offset': values['offset'] + values['functionLength'],
+        })
+        self.nesting_level += 1
 
     @_('PUSH')
     def expr(self, p):
@@ -366,8 +383,40 @@ class ActionScriptParser(Parser):
 
     @_('JUMP')
     def expr(self, p):
-        self.endScope(p.JUMP['offset'])
-        self.printCode("jump")
+        values = p.JUMP
+        offset = values['offset']
+        self.endScope(offset)
+
+        if values['value'] == 0:
+            self.scopes = list(filter(lambda x: not x['type'] == 'switch', self.scopes))
+            self.nesting_level -= 1
+            self.printCode("}")
+        else:
+            scopes = list(filter(lambda x: x['offset'] == offset, self.scopes))
+            if len(scopes) > 0:
+                for scope in scopes:
+                    if scope['type'] == 'case':
+                        self.nesting_level -= 1
+                        # TODO: Solve break;
+                        self.printCode(f"case {scope['case']}:")
+                        print(offset)
+                        self.nesting_level += 1
+                    else:
+                        self.printCode("found jump")
+                self.scopes = list(filter(lambda x: not x['offset'] == offset, self.scopes))
+            else:
+                print(self.scopes)
+                if self.scopes[-1]['type'] == 'switch':
+                    self.setScope({
+                        'type': 'default',
+                        'offset': values['offset'] + values['value'],
+                    })
+                    self.nesting_level -= 1
+                    self.printCode("default:")
+                    self.nesting_level += 1
+                    self.scopes = list(filter(lambda x: not x['type'] == 'switch', self.scopes))
+                else:
+                    self.printCode("jump")
 
     @_('GETURL2')
     def expr(self, p):
@@ -384,13 +433,30 @@ class ActionScriptParser(Parser):
         self.printCode(f"function {values['name']}({paramStr})")
         self.printCode("{")
         self.setParams(*values['params'])
-        self.setScope(values['offset'] + values['functionLength'])
+        self.setScope({
+            'type': 'function',
+            'offset': values['offset'] + values['functionLength'],
+        })
+        self.nesting_level += 1
 
     @_('IF')
     def expr(self, p):
         values = p.IF
         self.endScope(values['offset'])
         expression = self.stack.pop()
-        self.printCode(f"if ({expression})")
-        self.printCode("{")
-        self.setScope(values['offset'] + values['value'])
+
+        if (self.switch):
+            self.switch = False
+            self.setScope({
+                'type': 'case',
+                'offset': values['offset'] + values['value'],
+                'case': expression,
+            })
+        else:
+            self.printCode(f"if ({expression})")
+            self.printCode("{")
+            self.setScope({
+                'type': 'if',
+                'offset': values['offset'] + values['value'],
+            })
+            self.nesting_level += 1

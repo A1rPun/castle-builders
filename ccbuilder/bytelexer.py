@@ -282,7 +282,12 @@ class ByteLexer(BaseLexer):
     def STORE(self, t):
         offset = self.getOffset()
         nextBytes = self.getNextBytes(3)
-        t.value = {'offset': offset, 'value': hexToInt(nextBytes[2])}
+        modifier = self.nextByteIs("4f")
+        t.value = {
+            'offset': offset,
+            'value': hexToInt(nextBytes[2]),
+            'modifier': modifier,
+        }
         return t
 
     @_(r"88")
@@ -347,7 +352,11 @@ class ByteLexer(BaseLexer):
     def JUMP(self, t):
         offset = self.getOffset()
         nextBytes = self.getNextBytes(4)
-        t.value = {'offset': offset, 'value': nextBytes}
+        length = hexToInt(f"{nextBytes[3]}{nextBytes[2]}")
+        t.value = {
+            'value': length,
+            'offset': offset + 5,
+        }
         return t
 
     @_(r"9[a|A]")
@@ -368,7 +377,7 @@ class ByteLexer(BaseLexer):
         paramLength = hexToInt(nextBytes[0])
         params = self.getParams(paramLength)
         nextBytes = self.getNextBytes(2)
-        fnLength = hexToInt(''.join(nextBytes[::-1]))
+        fnLength = hexToInt(''.join(nextBytes))
         t.value = {
             'name': fnName,
             'paramLength': paramLength,
@@ -383,7 +392,7 @@ class ByteLexer(BaseLexer):
         offset = self.getOffset()
         nextBytes = self.getNextBytes(4)
         # TODO nextBytes[3] nextBytes[2]
-        length = hexToInt(nextBytes[2])
+        length = hexToInt(f"{nextBytes[3]}{nextBytes[2]}")
         t.value = {
             'value': length,
             'offset': offset + 5,

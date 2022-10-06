@@ -207,7 +207,7 @@ class PCodeParser(Parser):
     @_('DEFINEDICTIONARY')
     def expr(self, p):
         self.constantPool = list(map(lambda x: f"\"{x}\"", p.DEFINEDICTIONARY['pool']))
-        self.printCode(f"ConstantPool {' '.join(self.constantPool)}")
+        # self.printCode(f"ConstantPool {' '.join(self.constantPool)}")
 
     @_('GOTOLABEL')
     def expr(self, p):
