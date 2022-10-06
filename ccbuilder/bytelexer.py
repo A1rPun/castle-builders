@@ -16,10 +16,10 @@ class ByteLexer(BaseLexer):
             'param': byteArrayToString(value[1:]),
         }
 
-    def getParams(self, paramLength):
+    def getParams(self, paramLength, length):
         params = []
         for i in range(0, paramLength):
-            nextBytes = self.getNextBytesFind()
+            nextBytes = self.getNextBytesFind(length) # TODO: Fix length
             params.append(self.getParam(nextBytes))
         return params
 
@@ -317,7 +317,7 @@ class ByteLexer(BaseLexer):
         offset = self.getOffset()
         nextBytes = self.getNextBytes(2)
         length = hexToInt(nextBytes[0])
-        nextBytes = self.getNextBytesFind()
+        nextBytes = self.getNextBytesFind(length)
         fnName = byteArrayToString(nextBytes)
         nextBytes = self.getNextBytes(1)
         paramLength = hexToInt(nextBytes[0])
@@ -325,7 +325,7 @@ class ByteLexer(BaseLexer):
         regCount = hexToInt(nextBytes[1])
         nextBytes = self.getNextBytes(2)
         funcOption = FuncOption(hexToInt(nextBytes[0]))
-        params = self.getParams(paramLength)
+        params = self.getParams(paramLength, length)
         nextBytes = self.getNextBytes(2)
         fnLength = hexToInt(''.join(nextBytes[::-1]))
         t.value = {
@@ -371,11 +371,11 @@ class ByteLexer(BaseLexer):
         offset = self.getOffset()
         nextBytes = self.getNextBytes(2)
         length = hexToInt(nextBytes[0])
-        nextBytes = self.getNextBytesFind()
+        nextBytes = self.getNextBytesFind(length)
         fnName = byteArrayToString(nextBytes)
         nextBytes = self.getNextBytes(2)
         paramLength = hexToInt(nextBytes[0])
-        params = self.getParams(paramLength)
+        params = self.getParams(paramLength, length)
         nextBytes = self.getNextBytes(2)
         fnLength = hexToInt(''.join(nextBytes[::-1]))
         t.value = {
@@ -391,10 +391,20 @@ class ByteLexer(BaseLexer):
     def IF(self, t):
         offset = self.getOffset()
         nextBytes = self.getNextBytes(4)
-        # TODO nextBytes[3] nextBytes[2]
         length = hexToInt(f"{nextBytes[3]}{nextBytes[2]}")
+        modifier = self.hasNextByte(length, " 99")
+
+        if modifier >= 0:
+            jumpLength = hexToInt(''.join(self.text[modifier + 10:modifier + 15].split(' ')[::-1]))
+            # TODO: better 16bit unsigned to signed conversion plz
+            jumpLength = jumpLength if jumpLength < 32768 else (65536 - jumpLength) * -1
+            modifier = jumpLength < 0
+        else:
+            modifier = False
+
         t.value = {
             'value': length,
             'offset': offset + 5,
+            'modifier': modifier,
         }
         return t

@@ -1,6 +1,7 @@
 from sly import Parser
 from ccbuilder.bytelexer import ByteLexer
 from ccbuilder.util import boolToStr
+from ccbuilder.funcoption import FuncOption
 
 
 class ActionScriptParser(Parser):
@@ -11,35 +12,43 @@ class ActionScriptParser(Parser):
         self.constantPool = []
         self.stack = []
         self.nesting_level = 0
-        self.register = []
+        self.stackFrame = []
         self.scopes = []
         self.code = ""
         self.switch = False
+        self.quux = 0
 
     def setParams(self, *params):
-        self.register += params
+        self.stackFrame += params
 
     def getParam(self, register):
-        param = "_root"
+        param = None
 
-        for item in self.register:
+        for item in self.stackFrame:
             if item['register'] == register:
                 param = item['param']
                 break
 
         return param
 
+    def procScope(self, scope):
+        if scope['type'] == 'function':
+            self.stackFrame = []
+            self.nesting_level -= 1
+            self.printCode("}")
+        if scope['type'] == 'if' or scope['type'] == 'while':
+            self.nesting_level -= 1
+            self.printCode("}")
+        if scope['type'] == 'switch':
+            self.nesting_level -= 2
+            self.printCode("}")
+
     def endScope(self, newScope):
+        self.quux = newScope
         newScopes = []
         for scope in self.scopes[::-1]:
             if scope['offset'] <= newScope:
-                if scope['type'] == 'function' or scope['type'] == 'if':
-                    self.nesting_level -= 1
-                    self.printCode("}")
-                if scope['type'] == 'switch':
-                    self.nesting_level -= 2
-                    self.printCode("}")
-
+                self.procScope(scope)
             else:
                 newScopes.append(scope)
         self.scopes = newScopes[::-1]
@@ -51,6 +60,9 @@ class ActionScriptParser(Parser):
         print(f'[{self}] Illegal character {t}')
 
     def printCode(self, code):
+        extra = str(self.quux).rjust(8, '0')
+        # self.code += f"[{extra}] " + \
+        #     ("  " * self.nesting_level) + f"{code}" + "\n"
         self.code += "  " * self.nesting_level + f"{code}" + "\n"
         # print("   " * self.nesting_level + f"{code}")
 
@@ -280,6 +292,7 @@ class ActionScriptParser(Parser):
         fn = self.stack.pop()
         obj = self.stack.pop()
         argLength = int(float(self.stack.pop()))
+        # print(argLength, self.stack)
         args = []
         for i in range(0, argLength):
             args.append(self.stack.pop())
@@ -338,16 +351,20 @@ class ActionScriptParser(Parser):
         self.endScope(p.STORE['offset'])
         register = p.STORE['value']
         value = self.stack.pop()
+        param = self.getParam(register)
+
         if register == 0 and not p.STORE['modifier']:
             self.printCode(f"switch ({value})")
             self.printCode("{")
             self.nesting_level += 1
             self.switch = True
-            param = value
+            self.setParams({'register': register, 'param': value})
+        elif param:
+            self.printCode(f"{param} = {value};")
         else:
             param = f"_loc{register}_"
             self.printCode(f"var {param} = {value};")
-        self.setParams({'register': register, 'param': param})
+            self.setParams({'register': register, 'param': param})
 
     @_('DEFINEDICTIONARY')
     def expr(self, p):
@@ -369,6 +386,8 @@ class ActionScriptParser(Parser):
         paramStr = ','.join(map(lambda x: x['param'], values['params']))
         self.printCode(f"function {values['name']}({paramStr})")
         self.printCode("{")
+        if values['options'] & FuncOption.preload_global:
+            self.setParams({'register': 1, 'param': "_root"})
         self.setParams(*values['params'])
         self.setScope({
             'type': 'function',
@@ -387,12 +406,14 @@ class ActionScriptParser(Parser):
         offset = values['offset']
         bloatedScopes = self.scopes[::-1]
         self.quux = offset
+        # newScopes = []
 
         for i in range(0, len(bloatedScopes)):
             scope = bloatedScopes[i]
+
             if scope['type'] == 'switch' and offset == scope['offset']:
                 scope['offset'] = offset + values['value']
-                self.printCode("break;") # TODO: fix switch with only default
+                self.printCode("break;")  # TODO: fix switch with only default
                 self.nesting_level -= 1
                 self.printCode("default:")
                 self.nesting_level += 1
@@ -401,9 +422,23 @@ class ActionScriptParser(Parser):
                     self.printCode("break;")
                     self.nesting_level -= 1
 
-                # self.printCode(f"{self.scopes}..")
                 self.printCode(f"case {scope['case']}:")
                 self.nesting_level += 1
+            elif scope['type'] == 'if' and offset == scope['offset']:
+                scope['offset'] = offset + values['value']
+                self.nesting_level -= 1
+                self.printCode("}")
+                self.printCode("else")
+                self.printCode("{")
+                self.nesting_level += 1
+
+            # if scope['offset'] < offset:
+            #     self.procScope(scope)
+            # else:
+            #     newScopes.append(scope)
+
+            # if scope['offset'] <= offset:
+            #     self.procScope(scope)
 
         if self.switch:
             self.switch = False
@@ -411,13 +446,12 @@ class ActionScriptParser(Parser):
                 'type': 'switch',
                 'offset': offset + values['value'],
             })
-        
+        # self.printCode(f"..{self.scopes}..")
+
         # if values['value'] == 0:
         #     pass
-        # else:
-        #     self.printCode("jump")
-        
-        self.endScope(offset)
+        # self.endScope(offset)
+        # self.scopes = newScopes[::-1]
 
     @_('GETURL2')
     def expr(self, p):
@@ -453,10 +487,11 @@ class ActionScriptParser(Parser):
                 'case': expression,
             })
         else:
-            self.printCode(f"if ({expression})")
+            types = "while" if values['modifier'] else "if"
+            self.printCode(f"{types} ({expression})")
             self.printCode("{")
             self.setScope({
-                'type': 'if',
+                'type': types,
                 'offset': values['offset'] + values['value'],
             })
             self.nesting_level += 1
