@@ -373,11 +373,11 @@ class ByteLexer(BaseLexer):
         length = hexToInt(nextBytes[0])
         nextBytes = self.getNextBytesFind()
         fnName = byteArrayToString(nextBytes)
-        nextBytes = self.getNextBytes(1)
+        nextBytes = self.getNextBytes(2)
         paramLength = hexToInt(nextBytes[0])
         params = self.getParams(paramLength)
         nextBytes = self.getNextBytes(2)
-        fnLength = hexToInt(''.join(nextBytes))
+        fnLength = hexToInt(''.join(nextBytes[::-1]))
         t.value = {
             'name': fnName,
             'paramLength': paramLength,

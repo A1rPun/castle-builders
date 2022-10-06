@@ -31,14 +31,18 @@ class ActionScriptParser(Parser):
 
     def endScope(self, newScope):
         newScopes = []
-        for scope in self.scopes:
-            if not scope['type'] == 'case' and scope['offset'] <= newScope:
-                self.nesting_level -= 1
-                self.printCode("}")
+        for scope in self.scopes[::-1]:
+            if scope['offset'] <= newScope:
+                if scope['type'] == 'function' or scope['type'] == 'if':
+                    self.nesting_level -= 1
+                    self.printCode("}")
+                if scope['type'] == 'switch':
+                    self.nesting_level -= 2
+                    self.printCode("}")
+
             else:
                 newScopes.append(scope)
-        self.scopes = newScopes
-        print(self.scopes)
+        self.scopes = newScopes[::-1]
 
     def setScope(self, newScope):
         self.scopes.append(newScope)
@@ -81,7 +85,7 @@ class ActionScriptParser(Parser):
     @_('END')
     def expr(self, p):
         self.endScope(p.END['offset'])
-        print(f"End byte on {p.END['offset']}")
+        # print(f"End byte on {p.END['offset']}")
 
     @_('SUBSTRACT')
     def expr(self, p):
@@ -314,7 +318,6 @@ class ActionScriptParser(Parser):
     @_('STRICTEQUAL')
     def expr(self, p):
         self.endScope(p.STRICTEQUAL['offset'])
-        self.switch = True
 
     @_('GREATERTHAN')
     def expr(self, p):
@@ -338,11 +341,8 @@ class ActionScriptParser(Parser):
         if register == 0 and not p.STORE['modifier']:
             self.printCode(f"switch ({value})")
             self.printCode("{")
-            self.setScope({
-                'type': 'switch',
-                'offset': 99999999,
-            })
             self.nesting_level += 1
+            self.switch = True
             param = value
         else:
             param = f"_loc{register}_"
@@ -385,38 +385,39 @@ class ActionScriptParser(Parser):
     def expr(self, p):
         values = p.JUMP
         offset = values['offset']
-        self.endScope(offset)
+        bloatedScopes = self.scopes[::-1]
+        self.quux = offset
 
-        if values['value'] == 0:
-            self.scopes = list(filter(lambda x: not x['type'] == 'switch', self.scopes))
-            self.nesting_level -= 1
-            self.printCode("}")
-        else:
-            scopes = list(filter(lambda x: x['offset'] == offset, self.scopes))
-            if len(scopes) > 0:
-                for scope in scopes:
-                    if scope['type'] == 'case':
-                        self.nesting_level -= 1
-                        # TODO: Solve break;
-                        self.printCode(f"case {scope['case']}:")
-                        print(offset)
-                        self.nesting_level += 1
-                    else:
-                        self.printCode("found jump")
-                self.scopes = list(filter(lambda x: not x['offset'] == offset, self.scopes))
-            else:
-                print(self.scopes)
-                if self.scopes[-1]['type'] == 'switch':
-                    self.setScope({
-                        'type': 'default',
-                        'offset': values['offset'] + values['value'],
-                    })
+        for i in range(0, len(bloatedScopes)):
+            scope = bloatedScopes[i]
+            if scope['type'] == 'switch' and offset == scope['offset']:
+                scope['offset'] = offset + values['value']
+                self.printCode("break;") # TODO: fix switch with only default
+                self.nesting_level -= 1
+                self.printCode("default:")
+                self.nesting_level += 1
+            elif scope['type'] == 'case' and offset == scope['offset']:
+                if not self.switch:
+                    self.printCode("break;")
                     self.nesting_level -= 1
-                    self.printCode("default:")
-                    self.nesting_level += 1
-                    self.scopes = list(filter(lambda x: not x['type'] == 'switch', self.scopes))
-                else:
-                    self.printCode("jump")
+
+                # self.printCode(f"{self.scopes}..")
+                self.printCode(f"case {scope['case']}:")
+                self.nesting_level += 1
+
+        if self.switch:
+            self.switch = False
+            self.setScope({
+                'type': 'switch',
+                'offset': offset + values['value'],
+            })
+        
+        # if values['value'] == 0:
+        #     pass
+        # else:
+        #     self.printCode("jump")
+        
+        self.endScope(offset)
 
     @_('GETURL2')
     def expr(self, p):
@@ -445,8 +446,7 @@ class ActionScriptParser(Parser):
         self.endScope(values['offset'])
         expression = self.stack.pop()
 
-        if (self.switch):
-            self.switch = False
+        if self.switch:
             self.setScope({
                 'type': 'case',
                 'offset': values['offset'] + values['value'],
