@@ -38,7 +38,7 @@ class ByteLexer(BaseLexer):
         END,  # 00s
         AND, OR, SUBSTRACT, MULTIPLY, DIVIDE, NOT, POP, TOINT, GETVAR, SETVAR,  # 10s
         SETPROP, REMOVESPRITE, TRACE,  # 20s
-        RANDOM, GETTIME, CALLFUNC, RETURN, MODULO,  # 30s
+        RANDOM, GETTIME, DEFINELOCAL, CALLFUNC, RETURN, MODULO,  # 30s
         NEW, ADD2, LESSTHAN, EQUALS, PUSHDUPLICATE, GETMEMBER, SETMEMBER,  # 40s
         INCREMENT, DECREMENT, CALLMETHOD,  # 50s
         BITAND, BITOR, BITXOR, BITLSHIFT, BITRSHIFT, BITRSHIFTUNSIGNED, STRICTEQUAL, GREATERTHAN,  # 60s
@@ -139,6 +139,12 @@ class ByteLexer(BaseLexer):
 
     @_(r"34")
     def GETTIME(self, t):
+        offset = self.getOffset()
+        t.value = {'offset': offset}
+        return t
+
+    @_(r"3[c|C]")
+    def DEFINELOCAL(self, t):
         offset = self.getOffset()
         t.value = {'offset': offset}
         return t
@@ -299,7 +305,8 @@ class ByteLexer(BaseLexer):
         params = splitBytesOn(nextBytes[2:-1])
         t.value = {
             'pool': list(map(byteArrayToString, params)),
-            'offset': offset,
+            'offset': offset + 5,
+            'length': length,
         }
         return t
 
@@ -334,7 +341,7 @@ class ByteLexer(BaseLexer):
             'regCount': regCount,
             'params': params,
             'options': funcOption,
-            'functionLength': fnLength,
+            'length': fnLength,
             'offset': offset + length + 3,
         }
         return t
@@ -353,9 +360,12 @@ class ByteLexer(BaseLexer):
         offset = self.getOffset()
         nextBytes = self.getNextBytes(4)
         length = hexToInt(f"{nextBytes[3]}{nextBytes[2]}")
+        # TODO: check bytes after length
+        modifier = self.hasNextByte(length, " 9d") > 0 # oof case
         t.value = {
-            'value': length,
+            'length': length,
             'offset': offset + 5,
+            'modifier': modifier,
         }
         return t
 
@@ -382,7 +392,7 @@ class ByteLexer(BaseLexer):
             'name': fnName,
             'paramLength': paramLength,
             'params': params,
-            'functionLength': fnLength,
+            'length': fnLength,
             'offset': offset + length + 3,
         }
         return t
@@ -392,18 +402,18 @@ class ByteLexer(BaseLexer):
         offset = self.getOffset()
         nextBytes = self.getNextBytes(4)
         length = hexToInt(f"{nextBytes[3]}{nextBytes[2]}")
-        modifier = self.hasNextByte(length, " 99")
+        # TODO: check bytes after length
+        nextBytes = self.hasNextByte(length, " 99")
+        modifier = False
 
-        if modifier >= 0:
-            jumpLength = hexToInt(''.join(self.text[modifier + 10:modifier + 15].split(' ')[::-1]))
+        if nextBytes >= 0:
+            jumpLength = hexToInt(''.join(self.text[nextBytes + 10:nextBytes + 15].split(' ')[::-1]))
             # TODO: better 16bit unsigned to signed conversion plz
             jumpLength = jumpLength if jumpLength < 32768 else (65536 - jumpLength) * -1
             modifier = jumpLength < 0
-        else:
-            modifier = False
 
         t.value = {
-            'value': length,
+            'length': length,
             'offset': offset + 5,
             'modifier': modifier,
         }

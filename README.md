@@ -11,11 +11,16 @@
   - [x] To P-Code
   - [x] To Actionscript
     - [x] Expressions
+    - [x] If Else
+    - [ ] If Else If
+    - [ ] Ternary If Else
+    - [x] Switch case
+    - [x] While loop
+    - [ ] Do While
+    - [ ] For loop
+    - [ ] Arithmic precedence
     - [ ] String handling
-    - [ ] If else
-    - [ ] Switch case
-    - [ ] While loop
-    - [ ] Ternary
+    - [ ] While in If
   - [ ] To Bytes
 - [ ] Reading SWF
   - [x] Code

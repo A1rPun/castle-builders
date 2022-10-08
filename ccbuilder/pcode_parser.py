@@ -111,6 +111,10 @@ class PCodeParser(Parser):
     def expr(self, p):
         self.printCode("GetTime")
 
+    @_('DEFINELOCAL')
+    def expr(self, p):
+        self.printCode("DefineLocal")
+
     @_('CALLFUNC')
     def expr(self, p):
         self.printCode("CallFunction")

@@ -1,3 +1,4 @@
+import struct
 from ccbuilder.baselexer import BaseLexer
 from ccbuilder.util import splitBytes, hexToInt
 
@@ -8,12 +9,13 @@ class StructLexer(BaseLexer):
 
     @_(r"00")
     def STRING(self, t):
-        # nextBytes = self.getNextBytes(1)
+        # TODO: FIX
         return t
 
     @_(r"01")
     def FLOAT(self, t):
         nextBytes = self.getNextBytes(4)[::-1]
+        # TODO: FIX
         t.value = float.fromhex(''.join(nextBytes))
         return t
 
@@ -34,8 +36,10 @@ class StructLexer(BaseLexer):
 
     @_(r"06")
     def DOUBLE(self, t):
-        nextBytes = self.getNextBytes(8)[::-1]
-        t.value = float.fromhex(''.join(nextBytes))
+        nextBytes = self.getNextBytes(4)[::-1]
+        restBytes = self.getNextBytes(4)[::-1]
+        byteString = ''.join(nextBytes + restBytes)
+        t.value = struct.unpack("d", struct.pack("Q",int("0x"+byteString, 16)))[0]
         return t
 
     @_(r"07")
