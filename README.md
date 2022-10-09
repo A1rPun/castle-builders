@@ -7,6 +7,7 @@
 - [x] Lexer
   - [x] Main.swf opcodes
   - [x] All opcodes
+    - [ ] Not and Unknown
 - [x] Parser
   - [x] To P-Code
   - [x] To Actionscript

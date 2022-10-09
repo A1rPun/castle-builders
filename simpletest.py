@@ -32,7 +32,7 @@ if __name__ == '__main__':
     # test = 'this_root'
     # test = 'values' # FIX string
     # test = 'double_assign' # FIX
-    # test = 'fib' # FIX
+    # test = 'fib' # FIX ternary
     lexer = ByteLexer()
     parser = ActionScriptParser()
     tokens = lexer.tokenize(test_data[test][1])

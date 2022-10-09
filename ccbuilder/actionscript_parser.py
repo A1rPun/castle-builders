@@ -89,6 +89,9 @@ class ActionScriptParser(Parser):
     def parseStruct(self, struct):
         return map(self.parseStructItem, struct)
 
+    def popStack(self):
+        return self.stack.pop() if len(self.stack) else "$$pop()"
+
     @_('expr expr')
     def expr(self, p):
         pass
@@ -101,57 +104,57 @@ class ActionScriptParser(Parser):
     @_('SUBSTRACT')
     def expr(self, p):
         self.endScope(p.SUBSTRACT['offset'])
-        right = self.stack.pop()
-        left = self.stack.pop()
+        right = self.popStack()
+        left = self.popStack()
         self.stack.append(f"{left} - {right}")
 
     @_('MULTIPLY')
     def expr(self, p):
         self.endScope(p.MULTIPLY['offset'])
-        right = self.stack.pop()
-        left = self.stack.pop()
+        right = self.popStack()
+        left = self.popStack()
         self.stack.append(f"{left} * {right}")
 
     @_('DIVIDE')
     def expr(self, p):
         self.endScope(p.DIVIDE['offset'])
-        right = self.stack.pop()
-        left = self.stack.pop()
+        right = self.popStack()
+        left = self.popStack()
         self.stack.append(f"{left} / {right}")
 
     @_('AND')
     def expr(self, p):
         self.endScope(p.AND['offset'])
-        right = self.stack.pop()
-        left = self.stack.pop()
+        right = self.popStack()
+        left = self.popStack()
         self.stack.append(f"{left} && {right}")
 
     @_('OR')
     def expr(self, p):
         self.endScope(p.OR['offset'])
-        right = self.stack.pop()
-        left = self.stack.pop()
+        right = self.popStack()
+        left = self.popStack()
         self.stack.append(f"{left} || {right}")
 
     @_('NOT')
     def expr(self, p):
         self.endScope(p.NOT['offset'])
-        test = self.stack.pop()
-        self.stack.append(f"!{test}")
-        # TODO: Not doesnt always fits the context so make it context aware
+        if not p.NOT['value']:
+            test = self.popStack()
+            self.stack.append(f"!{test}")
 
     @_('POP')
     def expr(self, p):
         self.endScope(p.POP['offset'])
         if len(self.stack) > 0:
-            self.printCode(f"{self.stack.pop()};")
+            self.printCode(f"{self.popStack()};")
         else:
             self.printCode(f"$$pop();")
 
     @_('TOINT')
     def expr(self, p):
         self.endScope(p.TOINT['offset'])
-        value = self.stack.pop()
+        value = self.popStack()
         self.stack.append(f"int({value})")
 
     @_('GETVAR')
@@ -161,15 +164,15 @@ class ActionScriptParser(Parser):
     @_('SETVAR')
     def expr(self, p):
         self.endScope(p.SETVAR['offset'])
-        value = self.stack.pop()
-        var = self.stack.pop()
+        value = self.popStack()
+        var = self.popStack()
         self.printCode(f"{var} = {value};")
 
     @_('SETPROP')
     def expr(self, p):
         self.endScope(p.SETPROP['offset'])
-        prop = self.stack.pop()
-        value = self.stack.pop()
+        prop = self.popStack()
+        value = self.popStack()
         self.printCode(f"{prop} = {value};")
 
     @_('REMOVESPRITE')
@@ -180,74 +183,74 @@ class ActionScriptParser(Parser):
     @_('TRACE')
     def expr(self, p):
         self.endScope(p.TRACE['offset'])
-        value = self.stack.pop()
+        value = self.popStack()
         self.stack.append(f"trace({value})")
 
     @_('RANDOM')
     def expr(self, p):
         self.endScope(p.RANDOM['offset'])
-        value = self.stack.pop()
+        value = self.popStack()
         self.stack.append(f"random({value})")
 
     @_('GETTIME')
     def expr(self, p):
         self.endScope(p.GETTIME['offset'])
-        value = self.stack.pop()
+        value = self.popStack()
         self.stack.append(f"GetTime({value})")
 
     @_('DEFINELOCAL')
     def expr(self, p):
         self.endScope(p.DEFINELOCAL['offset'])
-        value = self.stack.pop()
-        var = self.stack.pop()
+        value = self.popStack()
+        var = self.popStack()
         self.printCode(f"var {var} = {value};")
 
     @_('CALLFUNC')
     def expr(self, p):
         self.endScope(p.CALLFUNC['offset'])
-        fn = self.stack.pop()
-        argLength = int(float(self.stack.pop()))
+        fn = self.popStack()
+        argLength = int(float(self.popStack()))
         args = []
         for i in range(0, argLength):
-            args.append(self.stack.pop())
+            args.append(self.popStack())
         self.stack.append(f"{fn}({','.join(args[::-1])})")
 
     @_('RETURN')
     def expr(self, p):
         self.endScope(p.RETURN['offset'])
-        value = self.stack.pop()
+        value = self.popStack()
         self.printCode(f"return {value};")
 
     @_('MODULO')
     def expr(self, p):
         self.endScope(p.MODULO['offset'])
-        right = self.stack.pop()
-        left = self.stack.pop()
+        right = self.popStack()
+        left = self.popStack()
         self.stack.append(f"{left} % {right}")
 
     @_('NEW')
     def expr(self, p):
         self.endScope(p.NEW['offset'])
-        className = self.stack.pop()
-        argLength = int(float(self.stack.pop()))
+        className = self.popStack()
+        argLength = int(float(self.popStack()))
         args = []
         for i in range(0, argLength):
-            args.append(self.stack.pop())
+            args.append(self.popStack())
         self.stack.append(f"new {className}({','.join(args)})")
 
     @_('TYPEDADD')
     def expr(self, p):
         self.endScope(p.TYPEDADD['offset'])
-        right = self.stack.pop()
-        left = self.stack.pop()
+        right = self.popStack()
+        left = self.popStack()
         self.stack.append(f"{left} + {right}")
 
     @_('TYPEDLESSTHAN')
     def expr(self, p):
         values = p.TYPEDLESSTHAN
         self.endScope(values['offset'])
-        right = self.stack.pop()
-        left = self.stack.pop()
+        right = self.popStack()
+        left = self.popStack()
         op = ">=" if values['modifier'] else "<"
         self.stack.append(f"{left} {op} {right}")
 
@@ -255,23 +258,23 @@ class ActionScriptParser(Parser):
     def expr(self, p):
         values = p.TYPEDEQUAL
         self.endScope(values['offset'])
-        right = self.stack.pop()
-        left = self.stack.pop()
+        right = self.popStack()
+        left = self.popStack()
         op = "!=" if values['modifier'] else "=="
         self.stack.append(f"{left} {op} {right}")
 
     @_('PUSHDUPLICATE')
     def expr(self, p):
         self.endScope(p.PUSHDUPLICATE['offset'])
-        value = self.stack.pop()
+        value = self.popStack()
         self.stack.append(value)
         self.stack.append(value)
 
     @_('GETMEMBER')
     def expr(self, p):
         self.endScope(p.GETMEMBER['offset'])
-        member = self.stack.pop()
-        parent = self.stack.pop()
+        member = self.popStack()
+        parent = self.popStack()
         self.stack.append(f"{parent}.{member}")
         # TODO: if member is string = parent[member]
         # self.stack.append(f"{parent}[{member}]")
@@ -279,7 +282,7 @@ class ActionScriptParser(Parser):
     @_('SETMEMBER')
     def expr(self, p):
         self.endScope(p.SETMEMBER['offset'])
-        value = self.stack.pop()
+        value = self.popStack()
         members = self.stack
         self.stack = []  # TODO
         self.printCode(f"{'.'.join(members)} = {value};")
@@ -287,24 +290,24 @@ class ActionScriptParser(Parser):
     @_('INCREMENT')
     def expr(self, p):
         self.endScope(p.INCREMENT['offset'])
-        value = self.stack.pop()
+        value = self.popStack()
         self.stack.append(f"{value} + 1")
 
     @_('DECREMENT')
     def expr(self, p):
         self.endScope(p.DECREMENT['offset'])
-        value = self.stack.pop()
+        value = self.popStack()
         self.stack.append(f"{value} - 1")
 
     @_('CALLMETHOD')
     def expr(self, p):
         self.endScope(p.CALLMETHOD['offset'])
-        fn = self.stack.pop()
-        obj = self.stack.pop()
-        argLength = int(float(self.stack.pop()))
+        fn = self.popStack()
+        obj = self.popStack()
+        argLength = int(float(self.popStack()))
         args = []
         for i in range(0, argLength):
-            args.append(self.stack.pop())
+            args.append(self.popStack())
         self.stack.append(f"{obj}.{fn}({','.join(args[::-1])})")
 
     @_('BITAND')
@@ -345,8 +348,8 @@ class ActionScriptParser(Parser):
     def expr(self, p):
         values = p.GREATERTHAN
         self.endScope(values['offset'])
-        right = self.stack.pop()
-        left = self.stack.pop()
+        right = self.popStack()
+        left = self.popStack()
         op = "<=" if values['modifier'] else ">"
         self.stack.append(f"{left} {op} {right}")
 
@@ -359,7 +362,7 @@ class ActionScriptParser(Parser):
     def expr(self, p):
         self.endScope(p.STORE['offset'])
         register = p.STORE['value']
-        value = self.stack.pop()
+        value = self.popStack()
         param = self.getParam(register)
 
         if register == 0 and not p.STORE['modifier']:
@@ -440,7 +443,7 @@ class ActionScriptParser(Parser):
                 self.nesting_level += 1
             elif scope['type'] == 'if':
                 # if len(self.stack) > 0:
-                #     val = self.stack.pop()
+                #     val = self.popStack()
                 #     self.printCode(f"? {val} : ")
                 # else:
 
@@ -466,8 +469,8 @@ class ActionScriptParser(Parser):
     @_('GETURL2')
     def expr(self, p):
         self.endScope(p.GETURL2['offset'])
-        window = self.stack.pop()
-        url = self.stack.pop()
+        window = self.popStack()
+        url = self.popStack()
         self.printCode(f"loadMovie({url},{window});")
 
     @_('DEFINEFUNC')
@@ -489,7 +492,7 @@ class ActionScriptParser(Parser):
     def expr(self, p):
         values = p.IF
         self.endScope(values['offset'])
-        expression = self.stack.pop()
+        expression = self.popStack()
         modifier = values['modifier']
         scope = {
             'offset': values['offset'],
@@ -509,17 +512,12 @@ class ActionScriptParser(Parser):
             self.printCode("{")
             self.nesting_level += 1
             # scope?
-        elif modifier == IfOption.whileStmt:
-            self.printCode(f"while ({expression})")
-            self.printCode("{")
-            self.nesting_level += 1
-            scope['type'] = "while"
-            self.setScope(scope)
         else:
-            self.printCode(f"if ({expression})")
+            typeString = "while" if modifier == IfOption.whileStmt else "if"
+            self.printCode(f"{typeString} ({expression})")
             self.printCode("{")
             self.nesting_level += 1
-            scope['type'] = "if"
+            scope['type'] = typeString
             self.setScope(scope)
 
     @_('ADD')

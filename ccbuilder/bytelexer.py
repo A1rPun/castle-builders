@@ -92,7 +92,13 @@ class ByteLexer(BaseLexer):
 
     @_(r"12")
     def NOT(self, t):
-        return self.defaultValue(t)
+        offset = self.getOffset()
+        isFromIf = self.findBytes(0, 1, " 9d")
+        t.value = {
+            'offset': offset,
+            'value': bool(isFromIf),
+        }
+        return t
 
     @_(r"13")
     def STRINGEQUAL(self, t):
