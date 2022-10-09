@@ -30,6 +30,17 @@ class BaseLexer(Lexer):
             raise
         return newIndex
 
+    def findBytes(self, start = None, end = None, byte = " 00"):
+        try:
+            mulStart = start * 3
+            mulEnd = end * 3
+            byteString = self.text[self.index + mulStart:self.index + mulStart + mulEnd]
+            return byteString if byteString[:3] == byte else ""
+        except ValueError:
+            return ""
+        except Exception:
+            raise
+
     @_(r'\n+')
     def ignore_newline(self, t):
         self.lineno += t.value.count('\n')

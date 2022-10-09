@@ -31,3 +31,9 @@ def splitBytesOn(byteArray, splitter="00"):
 
     newList.append(chunk)
     return newList
+
+
+def unsignedToSigned(byteArray, bits=16):
+    # TODO: better 16bit unsigned to signed conversion plz
+    number = hexToInt(''.join(byteArray))
+    return number if number < 32768 else (65536 - number) * -1

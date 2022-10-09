@@ -1,7 +1,8 @@
 from ccbuilder.baselexer import BaseLexer
-from ccbuilder.util import splitBytes, byteArrayToString, hexToInt, splitBytesOn
+from ccbuilder.util import splitBytes, byteArrayToString, hexToInt, splitBytesOn, unsignedToSigned
 from ccbuilder.structlexer import StructLexer
 from ccbuilder.funcoption import FuncOption
+from ccbuilder.ifoption import IfOption
 
 
 class ByteLexer(BaseLexer):
@@ -359,7 +360,7 @@ class ByteLexer(BaseLexer):
     def JUMP(self, t):
         offset = self.getOffset()
         nextBytes = self.getNextBytes(4)
-        length = hexToInt(f"{nextBytes[3]}{nextBytes[2]}")
+        length = unsignedToSigned(nextBytes[:-3:-1])
         # TODO: check bytes after length
         modifier = self.hasNextByte(length, " 9d") > 0 # oof case
         t.value = {
@@ -403,14 +404,17 @@ class ByteLexer(BaseLexer):
         nextBytes = self.getNextBytes(4)
         length = hexToInt(f"{nextBytes[3]}{nextBytes[2]}")
         # TODO: check bytes after length
-        nextBytes = self.hasNextByte(length, " 99")
-        modifier = False
+        modifier = IfOption.ifStmt
+        isCase = self.findBytes(-6, 1, " 66")
 
-        if nextBytes >= 0:
-            jumpLength = hexToInt(''.join(self.text[nextBytes + 10:nextBytes + 15].split(' ')[::-1]))
-            # TODO: better 16bit unsigned to signed conversion plz
-            jumpLength = jumpLength if jumpLength < 32768 else (65536 - jumpLength) * -1
-            modifier = jumpLength < 0
+        if isCase:
+            modifier = IfOption.caseStmt
+        else:
+            hasJump = self.findBytes(length - 5, 5, " 99")
+            if hasJump:
+                jumpLength = unsignedToSigned(hasJump.split(' ')[:-3:-1])
+                if jumpLength < 0:
+                    modifier = IfOption.whileStmt
 
         t.value = {
             'length': length,
