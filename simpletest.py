@@ -13,11 +13,27 @@ def parseTokens(tokens):
     print(parser.code)
 
 if __name__ == '__main__':
-    # test = 'while'
-    # test = 'if_then'
-    # test = 'switch'
+    # test = 'empty'
+    # test = 'push_number'
+    # test = 'equals'
+    # test = 'not_equals'
+    # test = 'lesser'
+    # test = 'lesser_equals'
+    # test = 'greater'
+    # test = 'greater_equals'
+    test = 'if_then'
     # test = 'if_then_else'
-    test = 'if_else_if'
+    # test = 'if_else_if' # FIX
+    # test = 'ternary' # FIX
+    # test = 'while'
+    # test = 'do_while' # FIX
+    # test = 'switch'
+    # test = 'this'
+    # test = 'root' # FIX
+    # test = 'this_root'
+    # test = 'values' # FIX string
+    # test = 'double_assign' # FIX
+    # test = 'fib' # FIX
     lexer = ByteLexer()
     parser = ActionScriptParser()
     tokens = lexer.tokenize(test_data[test][1])
