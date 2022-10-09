@@ -255,6 +255,18 @@ class PCodeParser(Parser):
     def expr(self, p):
         self.printCode("If")
 
+    @_('ADD')
+    def expr(self, p):
+        pass
+
+    @_('EQUAL')
+    def expr(self, p):
+        pass
+
+    @_('LESSTHAN')
+    def expr(self, p):
+        pass
+
     @_('NEXTFRAME')
     def expr(self, p):
         pass
@@ -337,13 +349,11 @@ class PCodeParser(Parser):
 
     @_('ORD')
     def expr(self, p):
-        pas
-    s
+        pass
 
     @_('CHR')
     def expr(self, p):
-        pas
-    s
+        pass
 
     @_('SUBSTRING2')
     def expr(self, p):

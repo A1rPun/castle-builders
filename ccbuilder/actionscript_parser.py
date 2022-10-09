@@ -495,7 +495,7 @@ class ActionScriptParser(Parser):
             'offset': values['offset'],
             'length': values['offset'] + values['length'],
         }
-        print(modifier)
+
         if modifier == IfOption.caseStmt:
             self.setScope({
                 'type': "case",
@@ -521,6 +521,18 @@ class ActionScriptParser(Parser):
             self.nesting_level += 1
             scope['type'] = "if"
             self.setScope(scope)
+
+    @_('ADD')
+    def expr(self, p):
+        pass
+
+    @_('EQUAL')
+    def expr(self, p):
+        pass
+
+    @_('LESSTHAN')
+    def expr(self, p):
+        pass
 
     @_('NEXTFRAME')
     def expr(self, p):
@@ -604,13 +616,11 @@ class ActionScriptParser(Parser):
 
     @_('ORD')
     def expr(self, p):
-        pas
-    s
+        pass
 
     @_('CHR')
     def expr(self, p):
-        pas
-    s
+        pass
 
     @_('SUBSTRING2')
     def expr(self, p):
