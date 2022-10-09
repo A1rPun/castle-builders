@@ -6,7 +6,7 @@
 
 - [x] Lexer
   - [x] Main.swf opcodes
-  - [ ] All opcodes
+  - [x] All opcodes
 - [x] Parser
   - [x] To P-Code
   - [x] To Actionscript
@@ -74,3 +74,7 @@ function fib(n)
   return n < 2 ? n : fib(n - 1) + fib(n - 2);
 }
 ```
+
+# Links
+
+- http://www.doc.ic.ac.uk/lab/labman/swwf/SWFalexref.html

@@ -235,25 +235,25 @@ class ActionScriptParser(Parser):
             args.append(self.stack.pop())
         self.stack.append(f"new {className}({','.join(args)})")
 
-    @_('ADD2')
+    @_('TYPEDADD')
     def expr(self, p):
-        self.endScope(p.ADD2['offset'])
+        self.endScope(p.TYPEDADD['offset'])
         right = self.stack.pop()
         left = self.stack.pop()
         self.stack.append(f"{left} + {right}")
 
-    @_('LESSTHAN')
+    @_('TYPEDLESSTHAN')
     def expr(self, p):
-        values = p.LESSTHAN
+        values = p.TYPEDLESSTHAN
         self.endScope(values['offset'])
         right = self.stack.pop()
         left = self.stack.pop()
         op = ">=" if values['modifier'] else "<"
         self.stack.append(f"{left} {op} {right}")
 
-    @_('EQUALS')
+    @_('TYPEDEQUAL')
     def expr(self, p):
-        values = p.EQUALS
+        values = p.TYPEDEQUAL
         self.endScope(values['offset'])
         right = self.stack.pop()
         left = self.stack.pop()
@@ -263,7 +263,9 @@ class ActionScriptParser(Parser):
     @_('PUSHDUPLICATE')
     def expr(self, p):
         self.endScope(p.PUSHDUPLICATE['offset'])
-        self.printCode("??")
+        value = self.stack.pop()
+        self.stack.append(value)
+        self.stack.append(value)
 
     @_('GETMEMBER')
     def expr(self, p):
@@ -519,3 +521,205 @@ class ActionScriptParser(Parser):
             self.nesting_level += 1
             scope['type'] = "if"
             self.setScope(scope)
+
+    @_('NEXTFRAME')
+    def expr(self, p):
+        pass
+
+    @_('PREVIOUSFRAME')
+    def expr(self, p):
+        pass
+
+    @_('PLAY')
+    def expr(self, p):
+        pass
+
+    @_('STOP')
+    def expr(self, p):
+        pass
+
+    @_('TOGGLEQUALITY')
+    def expr(self, p):
+        pass
+
+    @_('STOPSOUND')
+    def expr(self, p):
+        pass
+
+    @_('STRINGEQUAL')
+    def expr(self, p):
+        pass
+
+    @_('STRINGLENGTH')
+    def expr(self, p):
+        pass
+
+    @_('SUBSTRING')
+    def expr(self, p):
+        pass
+
+    @_('SETTARGETDYNAMIC')
+    def expr(self, p):
+        pass
+
+    @_('STRINGCONCAT')
+    def expr(self, p):
+        pass
+
+    @_('GETPROP')
+    def expr(self, p):
+        pass
+
+    @_('DUPLICATESPRITE')
+    def expr(self, p):
+        pass
+
+    @_('STARTDRAG')
+    def expr(self, p):
+        pass
+
+    @_('STOPDRAG')
+    def expr(self, p):
+        pass
+
+    @_('STRINGLESSTHAN')
+    def expr(self, p):
+        pass
+
+    @_('THROW')
+    def expr(self, p):
+        pass
+
+    @_('CASTOBJ')
+    def expr(self, p):
+        pass
+
+    @_('IMPLEMENTS')
+    def expr(self, p):
+        pass
+
+    @_('STRINGLENGTH2')
+    def expr(self, p):
+        pass
+
+    @_('ORD')
+    def expr(self, p):
+        pas
+    s
+
+    @_('CHR')
+    def expr(self, p):
+        pas
+    s
+
+    @_('SUBSTRING2')
+    def expr(self, p):
+        pass
+
+    @_('ORD2')
+    def expr(self, p):
+        pass
+
+    @_('CHR2')
+    def expr(self, p):
+        pass
+
+    @_('DELETE')
+    def expr(self, p):
+        pass
+
+    @_('DELETEALL')
+    def expr(self, p):
+        pass
+
+    @_('DECLARELOCAL')
+    def expr(self, p):
+        pass
+
+    @_('DECLAREARRAY')
+    def expr(self, p):
+        pass
+
+    @_('DECLAREOBJECT')
+    def expr(self, p):
+        pass
+
+    @_('TYPEOF')
+    def expr(self, p):
+        pass
+
+    @_('TARGETOF')
+    def expr(self, p):
+        pass
+
+    @_('ENUMERATE')
+    def expr(self, p):
+        pass
+
+    @_('VALUEOF')
+    def expr(self, p):
+        pass
+
+    @_('TOSTRING')
+    def expr(self, p):
+        pass
+
+    @_('SWAP')
+    def expr(self, p):
+        pass
+
+    @_('NEWMETHOD')
+    def expr(self, p):
+        pass
+
+    @_('INSTANCEOF')
+    def expr(self, p):
+        pass
+
+    @_('ENUMERATEOBJECT')
+    def expr(self, p):
+        pass
+
+    @_('STRINGGREATERTHAN')
+    def expr(self, p):
+        pass
+
+    @_('EXTENDS')
+    def expr(self, p):
+        pass
+
+    @_('GOTOFRAME')
+    def expr(self, p):
+        pass
+
+    @_('GETURL')
+    def expr(self, p):
+        pass
+
+    @_('WAITFORFRAME')
+    def expr(self, p):
+        pass
+
+    @_('SETTARGET')
+    def expr(self, p):
+        pass
+
+    @_('WAITFORFRAMEDYNAMIC')
+    def expr(self, p):
+        pass
+
+    @_('TRY')
+    def expr(self, p):
+        pass
+
+    @_('WITH')
+    def expr(self, p):
+        pass
+
+    @_('CALLFRAME')
+    def expr(self, p):
+        pass
+
+    @_('GOTO')
+    def expr(self, p):
+        pass

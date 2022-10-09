@@ -6,271 +6,351 @@ from ccbuilder.ifoption import IfOption
 
 
 class ByteLexer(BaseLexer):
+    tokens = {
+        END, NEXTFRAME, PREVIOUSFRAME, PLAY, STOP, TOGGLEQUALITY, STOPSOUND,
+        ADD, SUBSTRACT, MULTIPLY, DIVIDE, EQUAL, LESSTHAN, AND, OR, NOT,
+        STRINGEQUAL, STRINGLENGTH, SUBSTRING, POP, TOINT, GETVAR, SETVAR,
+        SETTARGETDYNAMIC, STRINGCONCAT, GETPROP, SETPROP, DUPLICATESPRITE,
+        REMOVESPRITE, TRACE, STARTDRAG, STOPDRAG, STRINGLESSTHAN, THROW,
+        CASTOBJ, IMPLEMENTS, RANDOM, STRINGLENGTH2, ORD, CHR, GETTIME,
+        SUBSTRING2, ORD2, CHR2, DELETE, DELETEALL, DEFINELOCAL, CALLFUNC,
+        RETURN, MODULO, NEW, DECLARELOCAL, DECLAREARRAY, DECLAREOBJECT, TYPEOF,
+        TARGETOF, ENUMERATE, TYPEDADD, TYPEDLESSTHAN, TYPEDEQUAL, VALUEOF,
+        TOSTRING, PUSHDUPLICATE, SWAP, GETMEMBER, SETMEMBER, INCREMENT,
+        DECREMENT, CALLMETHOD, NEWMETHOD, INSTANCEOF, ENUMERATEOBJECT, BITAND,
+        BITOR, BITXOR, BITLSHIFT, BITRSHIFT, BITRSHIFTUNSIGNED, STRICTEQUAL,
+        GREATERTHAN, STRINGGREATERTHAN, EXTENDS, UNKNOWN, GOTOFRAME, GETURL,
+        STORE, DEFINEDICTIONARY, WAITFORFRAME, SETTARGET, GOTOLABEL,
+        WAITFORFRAMEDYNAMIC, DEFINEFUNC2, TRY, WITH, PUSH, JUMP, GETURL2,
+        DEFINEFUNC, IF, CALLFRAME, GOTO
+    }
+
     def getValues(self, values):
         lexer = StructLexer()
         lexed = lexer.tokenize(' '.join(values))
         return lexed
 
-    def getParam(self, value):
-        return {
-            'register': hexToInt(value[0]),
-            'param': byteArrayToString(value[1:]),
-        }
-
-    def getParams(self, paramLength, length):
-        params = []
-        for i in range(0, paramLength):
-            nextBytes = self.getNextBytesFind(length) # TODO: Fix length
-            params.append(self.getParam(nextBytes))
-        return params
-
-    def getOffset(self):
-        return int((self.index - 2) / 3)
-
-    def nextByteIs(self, byte):
-        nextIndex = self.index + 1
-        nextByte = self.text[nextIndex:nextIndex + 2]
-        skip = nextByte == byte
-        if skip:
-            self.index += 3
-        return skip
-
-    tokens = {
-        END,  # 00s
-        AND, OR, SUBSTRACT, MULTIPLY, DIVIDE, NOT, POP, TOINT, GETVAR, SETVAR,  # 10s
-        SETPROP, REMOVESPRITE, TRACE,  # 20s
-        RANDOM, GETTIME, DEFINELOCAL, CALLFUNC, RETURN, MODULO,  # 30s
-        NEW, ADD2, LESSTHAN, EQUALS, PUSHDUPLICATE, GETMEMBER, SETMEMBER,  # 40s
-        INCREMENT, DECREMENT, CALLMETHOD,  # 50s
-        BITAND, BITOR, BITXOR, BITLSHIFT, BITRSHIFT, BITRSHIFTUNSIGNED, STRICTEQUAL, GREATERTHAN,  # 60s
-        UNKNOWN,  # 70s
-        STORE, DEFINEDICTIONARY, GOTOLABEL, DEFINEFUNC2,  # 80s
-        PUSH, JUMP, GETURL2, DEFINEFUNC, IF  # 90s
-    }
-
     @_(r"00")
     def END(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
+
+    @_(r"04")
+    def NEXTFRAME(self, t):
+        return self.defaultValue(t)
+
+    @_(r"05")
+    def PREVIOUSFRAME(self, t):
+        return self.defaultValue(t)
+
+    @_(r"06")
+    def PLAY(self, t):
+        return self.defaultValue(t)
+
+    @_(r"07")
+    def STOP(self, t):
+        return self.defaultValue(t)
+
+    @_(r"08")
+    def TOGGLEQUALITY(self, t):
+        return self.defaultValue(t)
+
+    @_(r"09")
+    def STOPSOUND(self, t):
+        return self.defaultValue(t)
+
+    @_(r"0[a|A]")
+    def ADD(self, t):
+        return self.defaultValue(t)
 
     @_(r"0[b|B]")
     def SUBSTRACT(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
 
     @_(r"0[c|C]")
     def MULTIPLY(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
 
     @_(r"0[d|D]")
     def DIVIDE(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
+
+    @_(r"0[e|E]")
+    def EQUAL(self, t):
+        return self.defaultValue(t)
+
+    @_(r"0[f|F]")
+    def LESSTHAN(self, t):
+        return self.defaultValue(t)
 
     @_(r"10")
     def AND(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
 
     @_(r"11")
     def OR(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
 
     @_(r"12")
     def NOT(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
+
+    @_(r"13")
+    def STRINGEQUAL(self, t):
+        return self.defaultValue(t)
+
+    @_(r"14")
+    def STRINGLENGTH(self, t):
+        return self.defaultValue(t)
+
+    @_(r"15")
+    def SUBSTRING(self, t):
+        return self.defaultValue(t)
 
     @_(r"17")
     def POP(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
 
     @_(r"18")
     def TOINT(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
 
     @_(r"1[c|C]")
     def GETVAR(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
 
     @_(r"1[d|D]")
     def SETVAR(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
+
+    @_(r"20")
+    def SETTARGETDYNAMIC(self, t):
+        return self.defaultValue(t)
+
+    @_(r"21")
+    def STRINGCONCAT(self, t):
+        return self.defaultValue(t)
+
+    @_(r"22")
+    def GETPROP(self, t):
+        return self.defaultValue(t)
 
     @_(r"23")
     def SETPROP(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
+
+    @_(r"24")
+    def DUPLICATESPRITE(self, t):
+        return self.defaultValue(t)
 
     @_(r"25")
     def REMOVESPRITE(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
 
     @_(r"26")
     def TRACE(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
+
+    @_(r"27")
+    def STARTDRAG(self, t):
+        return self.defaultValue(t)
+
+    @_(r"28")
+    def STOPDRAG(self, t):
+        return self.defaultValue(t)
+
+    @_(r"29")
+    def STRINGLESSTHAN(self, t):
+        return self.defaultValue(t)
+
+    @_(r"2[a|A]")
+    def THROW(self, t):
+        return self.defaultValue(t)
+
+    @_(r"2[b|B]")
+    def CASTOBJ(self, t):
+        return self.defaultValue(t)
+
+    @_(r"2[c|C]")
+    def IMPLEMENTS(self, t):
+        return self.defaultValue(t)
 
     @_(r"30")
     def RANDOM(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
+
+    @_(r"31")
+    def STRINGLENGTH2(self, t):
+        return self.defaultValue(t)
+
+    @_(r"32")
+    def ORD(self, t):
+        return self.defaultValue(t)
+
+    @_(r"33")
+    def CHR(self, t):
+        return self.defaultValue(t)
 
     @_(r"34")
     def GETTIME(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
+
+    @_(r"35")
+    def SUBSTRING2(self, t):
+        return self.defaultValue(t)
+
+    @_(r"36")
+    def ORD2(self, t):
+        return self.defaultValue(t)
+
+    @_(r"37")
+    def CHR2(self, t):
+        return self.defaultValue(t)
+
+    @_(r"3[a|A]")
+    def DELETE(self, t):
+        return self.defaultValue(t)
+
+    @_(r"3[b|B]")
+    def DELETEALL(self, t):
+        return self.defaultValue(t)
 
     @_(r"3[c|C]")
     def DEFINELOCAL(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
 
     @_(r"3[d|D]")
     def CALLFUNC(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
 
     @_(r"3[e|E]")
     def RETURN(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
 
     @_(r"3[f|F]")
     def MODULO(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
 
     @_(r"40")
     def NEW(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
+
+    @_(r"41")
+    def DECLARELOCAL(self, t):
+        return self.defaultValue(t)
+
+    @_(r"42")
+    def DECLAREARRAY(self, t):
+        return self.defaultValue(t)
+
+    @_(r"43")
+    def DECLAREOBJECT(self, t):
+        return self.defaultValue(t)
+
+    @_(r"44")
+    def TYPEOF(self, t):
+        return self.defaultValue(t)
+
+    @_(r"45")
+    def TARGETOF(self, t):
+        return self.defaultValue(t)
+
+    @_(r"46")
+    def ENUMERATE(self, t):
+        return self.defaultValue(t)
 
     @_(r"47")
-    def ADD2(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+    def TYPEDADD(self, t):
+        return self.defaultValue(t)
 
     @_(r"48")
-    def LESSTHAN(self, t):
+    def TYPEDLESSTHAN(self, t):
         offset = self.getOffset()
         modifier = self.nextByteIs("12")
         t.value = {'offset': offset, 'modifier': modifier}
         return t
 
     @_(r"49")
-    def EQUALS(self, t):
+    def TYPEDEQUAL(self, t):
         offset = self.getOffset()
         modifier = self.nextByteIs("12")
         t.value = {'offset': offset, 'modifier': modifier}
         return t
 
+    @_(r"4[a|A]")
+    def VALUEOF(self, t):
+        return self.defaultValue(t)
+
+    @_(r"4[b|B]")
+    def TOSTRING(self, t):
+        return self.defaultValue(t)
+
     @_(r"4[c|C]")
     def PUSHDUPLICATE(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
+
+    @_(r"4[d|D]")
+    def SWAP(self, t):
+        return self.defaultValue(t)
 
     @_(r"4[e|E]")
     def GETMEMBER(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
 
     @_(r"4[f|F]")
     def SETMEMBER(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
 
     @_(r"50")
     def INCREMENT(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
 
     @_(r"51")
     def DECREMENT(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
 
     @_(r"52")
     def CALLMETHOD(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
+
+    @_(r"53")
+    def NEWMETHOD(self, t):
+        return self.defaultValue(t)
+
+    @_(r"54")
+    def INSTANCEOF(self, t):
+        return self.defaultValue(t)
+
+    @_(r"55")
+    def ENUMERATEOBJECT(self, t):
+        return self.defaultValue(t)
 
     @_(r"60")
     def BITAND(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
 
     @_(r"61")
     def BITOR(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
 
     @_(r"62")
     def BITXOR(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
 
     @_(r"63")
     def BITLSHIFT(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
 
     @_(r"64")
     def BITRSHIFT(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
 
     @_(r"65")
     def BITRSHIFTUNSIGNED(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
 
     @_(r"66")
     def STRICTEQUAL(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
 
     @_(r"67")
     def GREATERTHAN(self, t):
@@ -279,11 +359,25 @@ class ByteLexer(BaseLexer):
         t.value = {'offset': offset, 'modifier': modifier}
         return t
 
+    @_(r"68")
+    def STRINGGREATERTHAN(self, t):
+        return self.defaultValue(t)
+
+    @_(r"69")
+    def EXTENDS(self, t):
+        return self.defaultValue(t)
+
     @_(r"70")
     def UNKNOWN(self, t):
-        offset = self.getOffset()
-        t.value = {'offset': offset}
-        return t
+        return self.defaultValue(t)
+
+    @_(r"81")
+    def GOTOFRAME(self, t):
+        return self.defaultValue(t)
+
+    @_(r"83")
+    def GETURL(self, t):
+        return self.defaultValue(t)
 
     @_(r"87")
     def STORE(self, t):
@@ -311,6 +405,14 @@ class ByteLexer(BaseLexer):
         }
         return t
 
+    @_(r"8[a|A]")
+    def WAITFORFRAME(self, t):
+        return self.defaultValue(t)
+
+    @_(r"8[b|B]")
+    def SETTARGET(self, t):
+        return self.defaultValue(t)
+
     @_(r"8[c|C]")
     def GOTOLABEL(self, t):
         offset = self.getOffset()
@@ -319,6 +421,10 @@ class ByteLexer(BaseLexer):
         nextBytes = self.getNextBytes(length)
         t.value = {'offset': offset, 'value': byteArrayToString(nextBytes)}
         return t
+
+    @_(r"8[d|D]")
+    def WAITFORFRAMEDYNAMIC(self, t):
+        return self.defaultValue(t)
 
     @_(r"8[e|E]")
     def DEFINEFUNC2(self, t):
@@ -347,6 +453,14 @@ class ByteLexer(BaseLexer):
         }
         return t
 
+    @_(r"8[f|F]")
+    def TRY(self, t):
+        return self.defaultValue(t)
+
+    @_(r"94")
+    def WITH(self, t):
+        return self.defaultValue(t)
+
     @_(r"96")
     def PUSH(self, t):
         offset = self.getOffset()
@@ -362,7 +476,7 @@ class ByteLexer(BaseLexer):
         nextBytes = self.getNextBytes(4)
         length = unsignedToSigned(nextBytes[:-3:-1])
         # TODO: check bytes after length
-        modifier = self.hasNextByte(length, " 9d") > 0 # oof case
+        modifier = self.hasNextByte(length, " 9d") > 0  # oof case
         t.value = {
             'length': length,
             'offset': offset + 5,
@@ -422,3 +536,11 @@ class ByteLexer(BaseLexer):
             'modifier': modifier,
         }
         return t
+
+    @_(r"9[e|E]")
+    def CALLFRAME(self, t):
+        return self.defaultValue(t)
+
+    @_(r"9[f|F]")
+    def GOTO(self, t):
+        return self.defaultValue(t)

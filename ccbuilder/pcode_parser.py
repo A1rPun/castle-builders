@@ -131,15 +131,15 @@ class PCodeParser(Parser):
     def expr(self, p):
         self.printCode("NewObject")
 
-    @_('ADD2')
+    @_('TYPEDADD')
     def expr(self, p):
-        self.printCode("Add2")
+        self.printCode("TYPEDADD")
 
-    @_('LESSTHAN')
+    @_('TYPEDLESSTHAN')
     def expr(self, p):
         self.printCode("Less2")
 
-    @_('EQUALS')
+    @_('TYPEDEQUAL')
     def expr(self, p):
         self.printCode("Equals2")
 
@@ -210,7 +210,8 @@ class PCodeParser(Parser):
 
     @_('DEFINEDICTIONARY')
     def expr(self, p):
-        self.constantPool = list(map(lambda x: f"\"{x}\"", p.DEFINEDICTIONARY['pool']))
+        self.constantPool = list(
+            map(lambda x: f"\"{x}\"", p.DEFINEDICTIONARY['pool']))
         # self.printCode(f"ConstantPool {' '.join(self.constantPool)}")
 
     @_('GOTOLABEL')
@@ -220,13 +221,15 @@ class PCodeParser(Parser):
     @_('DEFINEFUNC2')
     def expr(self, p):
         values = p.DEFINEFUNC2
-        paramStr = ','.join(map(lambda x: f"{x['register']} \"{x['param']}\"", values['params']))
+        paramStr = ','.join(
+            map(lambda x: f"{x['register']} \"{x['param']}\"", values['params']))
         options = values['options']
         optionStr = ""
         for op in (FuncOption):
             optionStr += f"{boolToStr(options & op.value)} "
         optionStr += "false"
-        self.printCode(f"DefineFunction2 \"{values['name']}\" {values['paramLength']} {values['regCount']} {optionStr} {paramStr} {{")
+        self.printCode(
+            f"DefineFunction2 \"{values['name']}\" {values['paramLength']} {values['regCount']} {optionStr} {paramStr} {{")
 
     @_('PUSH')
     def expr(self, p):
@@ -243,9 +246,213 @@ class PCodeParser(Parser):
     @_('DEFINEFUNC')
     def expr(self, p):
         values = p.DEFINEFUNC
-        paramStr = ','.join(map(lambda x: f"{x['register']} \"{x['param']}\"", values['params']))
-        self.printCode(f"DefineFunction \"{values['name']}\" {values['paramLength']} {paramStr} {{")
+        paramStr = ','.join(
+            map(lambda x: f"{x['register']} \"{x['param']}\"", values['params']))
+        self.printCode(
+            f"DefineFunction \"{values['name']}\" {values['paramLength']} {paramStr} {{")
 
     @_('IF')
     def expr(self, p):
         self.printCode("If")
+
+    @_('NEXTFRAME')
+    def expr(self, p):
+        pass
+
+    @_('PREVIOUSFRAME')
+    def expr(self, p):
+        pass
+
+    @_('PLAY')
+    def expr(self, p):
+        pass
+
+    @_('STOP')
+    def expr(self, p):
+        pass
+
+    @_('TOGGLEQUALITY')
+    def expr(self, p):
+        pass
+
+    @_('STOPSOUND')
+    def expr(self, p):
+        pass
+
+    @_('STRINGEQUAL')
+    def expr(self, p):
+        pass
+
+    @_('STRINGLENGTH')
+    def expr(self, p):
+        pass
+
+    @_('SUBSTRING')
+    def expr(self, p):
+        pass
+
+    @_('SETTARGETDYNAMIC')
+    def expr(self, p):
+        pass
+
+    @_('STRINGCONCAT')
+    def expr(self, p):
+        pass
+
+    @_('GETPROP')
+    def expr(self, p):
+        pass
+
+    @_('DUPLICATESPRITE')
+    def expr(self, p):
+        pass
+
+    @_('STARTDRAG')
+    def expr(self, p):
+        pass
+
+    @_('STOPDRAG')
+    def expr(self, p):
+        pass
+
+    @_('STRINGLESSTHAN')
+    def expr(self, p):
+        pass
+
+    @_('THROW')
+    def expr(self, p):
+        pass
+
+    @_('CASTOBJ')
+    def expr(self, p):
+        pass
+
+    @_('IMPLEMENTS')
+    def expr(self, p):
+        pass
+
+    @_('STRINGLENGTH2')
+    def expr(self, p):
+        pass
+
+    @_('ORD')
+    def expr(self, p):
+        pas
+    s
+
+    @_('CHR')
+    def expr(self, p):
+        pas
+    s
+
+    @_('SUBSTRING2')
+    def expr(self, p):
+        pass
+
+    @_('ORD2')
+    def expr(self, p):
+        pass
+
+    @_('CHR2')
+    def expr(self, p):
+        pass
+
+    @_('DELETE')
+    def expr(self, p):
+        pass
+
+    @_('DELETEALL')
+    def expr(self, p):
+        pass
+
+    @_('DECLARELOCAL')
+    def expr(self, p):
+        pass
+
+    @_('DECLAREARRAY')
+    def expr(self, p):
+        pass
+
+    @_('DECLAREOBJECT')
+    def expr(self, p):
+        pass
+
+    @_('TYPEOF')
+    def expr(self, p):
+        pass
+
+    @_('TARGETOF')
+    def expr(self, p):
+        pass
+
+    @_('ENUMERATE')
+    def expr(self, p):
+        pass
+
+    @_('VALUEOF')
+    def expr(self, p):
+        pass
+
+    @_('TOSTRING')
+    def expr(self, p):
+        pass
+
+    @_('SWAP')
+    def expr(self, p):
+        pass
+
+    @_('NEWMETHOD')
+    def expr(self, p):
+        pass
+
+    @_('INSTANCEOF')
+    def expr(self, p):
+        pass
+
+    @_('ENUMERATEOBJECT')
+    def expr(self, p):
+        pass
+
+    @_('STRINGGREATERTHAN')
+    def expr(self, p):
+        pass
+
+    @_('EXTENDS')
+    def expr(self, p):
+        pass
+
+    @_('GOTOFRAME')
+    def expr(self, p):
+        pass
+
+    @_('GETURL')
+    def expr(self, p):
+        pass
+
+    @_('WAITFORFRAME')
+    def expr(self, p):
+        pass
+
+    @_('SETTARGET')
+    def expr(self, p):
+        pass
+
+    @_('WAITFORFRAMEDYNAMIC')
+    def expr(self, p):
+        pass
+
+    @_('TRY')
+    def expr(self, p):
+        pass
+
+    @_('WITH')
+    def expr(self, p):
+        pass
+
+    @_('CALLFRAME')
+    def expr(self, p):
+        pass
+
+    @_('GOTO')
+    def expr(self, p):
+        pass

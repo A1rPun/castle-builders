@@ -98,15 +98,15 @@ class ByteParser(Parser):
     def expr(self, p):
         self.addBytes(0x40)
 
-    @_('ADD2')
+    @_('TYPEDADD')
     def expr(self, p):
         self.addBytes(0x47)
 
-    @_('LESSTHAN')
+    @_('TYPEDLESSTHAN')
     def expr(self, p):
         self.addBytes(0x48)
 
-    @_('EQUALS')
+    @_('TYPEDEQUAL')
     def expr(self, p):
         self.addBytes(0x49)
 

@@ -41,6 +41,35 @@ class BaseLexer(Lexer):
         except Exception:
             raise
 
+    def getParam(self, value):
+        return {
+            'register': hexToInt(value[0]),
+            'param': byteArrayToString(value[1:]),
+        }
+
+    def getParams(self, paramLength, length):
+        params = []
+        for i in range(0, paramLength):
+            nextBytes = self.getNextBytesFind(length)  # TODO: Fix length
+            params.append(self.getParam(nextBytes))
+        return params
+
+    def getOffset(self):
+        return int((self.index - 2) / 3)
+
+    def defaultValue(self, t):
+        offset = self.getOffset()
+        t.value = {'offset': offset}
+        return t
+
+    def nextByteIs(self, byte):
+        nextIndex = self.index + 1
+        nextByte = self.text[nextIndex:nextIndex + 2]
+        skip = nextByte == byte
+        if skip:
+            self.index += 3
+        return skip
+
     @_(r'\n+')
     def ignore_newline(self, t):
         self.lineno += t.value.count('\n')
