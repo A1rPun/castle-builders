@@ -1,6 +1,6 @@
 from sly import Parser
 from ccbuilder.bytelexer import ByteLexer
-from ccbuilder.util import boolToStr
+from ccbuilder.util import boolToStr, stripQuote
 from ccbuilder.funcoption import FuncOption
 from ccbuilder.ifoption import IfOption
 from ccbuilder.scopeoption import ScopeOption
@@ -34,6 +34,7 @@ class ActionScriptParser(Parser):
         self.labels = []
         self.codes = []
         self.switch = False
+        self.justReturned = False
         self.currentOffset = 0
 
     def setParams(self, *params):
@@ -82,10 +83,11 @@ class ActionScriptParser(Parser):
         elif labelType == ScopeOption.switchEnd:
             lastJump = self.labels[-1]
             if lastJump['type'] == ScopeOption.jumpEnd and not lastJump['jump'] == label['jump']:
-                self.addCode("break;")
-                self.nesting_level -= 1
-                self.addCode("default:")
-                self.nesting_level += 1
+                if not self.justReturned:
+                    self.addCode("break;")
+                    self.nesting_level -= 1
+                    self.addCode("default:")
+                    self.nesting_level += 1
                 label['jump'] = lastJump['jump']
             else:
                 self.nesting_level -= 2
@@ -93,9 +95,12 @@ class ActionScriptParser(Parser):
         elif labelType == ScopeOption.caseEnd:
             if self.switch:
                 self.switch = False
+            elif self.justReturned:
+                self.nesting_level -= 1
             else:
                 self.addCode("break;")
                 self.nesting_level -= 1
+
             self.addCode(f"case {label['value']}:")
             self.nesting_level += 1
         elif labelType == ScopeOption.jumpEnd:
@@ -112,6 +117,7 @@ class ActionScriptParser(Parser):
             lhs = self.popStack()
             self.stack.append(f"{expr} ? {lhs} : {rhs}")
             self.codes = self.codes[:-3]
+        self.justReturned = False
 
     def error(self, t):
         print(f'[{self}] Illegal character {t}')
@@ -155,9 +161,9 @@ class ActionScriptParser(Parser):
         elif item.type == 'INTEGER':
             return str(item.value)
         elif item.type == 'DICTLOOKUP':
-            return self.constantPool[item.value]
+            return f"\"{self.constantPool[item.value]}\""
         elif item.type == 'DICTLOOKUPLARGE':
-            return self.constantPool[item.value]
+            return f"\"{self.constantPool[item.value]}\""
         return None
 
     def parseStruct(self, struct):
@@ -174,7 +180,6 @@ class ActionScriptParser(Parser):
     @_('END')
     def expr(self, p):
         self.endScope(p.END['offset'])
-        # print(f"End byte on {p.END['offset']}")
 
     @_('SUBSTRACT')
     def expr(self, p):
@@ -202,14 +207,14 @@ class ActionScriptParser(Parser):
         self.endScope(p.AND['offset'])
         rhs = self.popStack()
         lhs = self.popStack()
-        self.stack.append(f"{lhs} && {rhs}")
+        self.stack.append(f"{lhs} and {rhs}")
 
     @_('OR')
     def expr(self, p):
         self.endScope(p.OR['offset'])
         rhs = self.popStack()
         lhs = self.popStack()
-        self.stack.append(f"{lhs} || {rhs}")
+        self.stack.append(f"{lhs} or {rhs}")
 
     @_('NOT')
     def expr(self, p):
@@ -221,8 +226,7 @@ class ActionScriptParser(Parser):
     @_('POP')
     def expr(self, p):
         self.endScope(p.POP['offset'])
-        if len(self.stack) > 0:
-            self.addCode(f"{self.popStack()};")
+        self.addCode(f"{self.popStack()};")
 
     @_('TOINT')
     def expr(self, p):
@@ -233,12 +237,15 @@ class ActionScriptParser(Parser):
     @_('GETVAR')
     def expr(self, p):
         self.endScope(p.GETVAR['offset'])
+        var = stripQuote(self.popStack())
+        self.stack.append(var)
 
     @_('SETVAR')
     def expr(self, p):
         self.endScope(p.SETVAR['offset'])
         value = self.popStack()
-        var = self.popStack()
+        var = stripQuote(self.popStack())
+        # self.stack.append(f"{var} = {value}")
         self.addCode(f"{var} = {value};")
 
     @_('SETPROP')
@@ -251,7 +258,8 @@ class ActionScriptParser(Parser):
     @_('REMOVESPRITE')
     def expr(self, p):
         self.endScope(p.REMOVESPRITE['offset'])
-        self.addCode("RemoveSprite")
+        url = self.popStack()
+        self.addCode(f"removeMovieClip({url});")
 
     @_('TRACE')
     def expr(self, p):
@@ -269,29 +277,30 @@ class ActionScriptParser(Parser):
     def expr(self, p):
         self.endScope(p.GETTIME['offset'])
         value = self.popStack()
-        self.stack.append(f"GetTime({value})")
+        self.stack.append(f"getTimer({value})")
 
     @_('DEFINELOCAL')
     def expr(self, p):
         self.endScope(p.DEFINELOCAL['offset'])
         value = self.popStack()
-        var = self.popStack()
+        var = stripQuote(self.popStack())
         self.addCode(f"var {var} = {value};")
 
     @_('CALLFUNC')
     def expr(self, p):
         self.endScope(p.CALLFUNC['offset'])
-        fn = self.popStack()
+        fn = stripQuote(self.popStack())
         argLength = int(float(self.popStack()))
         args = []
         for i in range(0, argLength):
             args.append(self.popStack())
-        self.stack.append(f"{fn}({','.join(args[::-1])})")
+        self.stack.append(f"{fn}({','.join(args)})")
 
     @_('RETURN')
     def expr(self, p):
         self.endScope(p.RETURN['offset'])
         value = self.popStack()
+        self.justReturned = True
         self.addCode(f"return {value};")
 
     @_('MODULO')
@@ -304,7 +313,7 @@ class ActionScriptParser(Parser):
     @_('NEW')
     def expr(self, p):
         self.endScope(p.NEW['offset'])
-        className = self.popStack()
+        className = stripQuote(self.popStack())
         argLength = int(float(self.popStack()))
         args = []
         for i in range(0, argLength):
@@ -348,17 +357,18 @@ class ActionScriptParser(Parser):
         self.endScope(p.GETMEMBER['offset'])
         member = self.popStack()
         parent = self.popStack()
-        self.stack.append(f"{parent}.{member}")
-        # TODO: if member is string = parent[member]
-        # self.stack.append(f"{parent}[{member}]")
+        # if member[0] == '"':
+        #     self.stack.append(f"{parent}[{member}]")
+        # else:
+        self.stack.append(f"{parent}.{stripQuote(member)}")
 
     @_('SETMEMBER')
     def expr(self, p):
         self.endScope(p.SETMEMBER['offset'])
         value = self.popStack()
-        members = self.stack
-        self.stack = []  # TODO
-        self.addCode(f"{'.'.join(members)} = {value};")
+        member = stripQuote(self.popStack())
+        obj = self.popStack()
+        self.addCode(f"{obj}.{member} = {value};")
 
     @_('INCREMENT')
     def expr(self, p):
@@ -375,43 +385,55 @@ class ActionScriptParser(Parser):
     @_('CALLMETHOD')
     def expr(self, p):
         self.endScope(p.CALLMETHOD['offset'])
-        fn = self.popStack()
+        method = stripQuote(self.popStack())
         obj = self.popStack()
         argLength = int(float(self.popStack()))
         args = []
         for i in range(0, argLength):
             args.append(self.popStack())
-        self.stack.append(f"{obj}.{fn}({','.join(args[::-1])})")
+        self.stack.append(f"{obj}.{method}({','.join(args)})")
 
     @_('BITAND')
     def expr(self, p):
         self.endScope(p.BITAND['offset'])
-        self.addCode("&")
+        rhs = self.popStack()
+        lhs = self.popStack()
+        self.stack.append(f"{lhs} & {rhs}")
 
     @_('BITOR')
     def expr(self, p):
         self.endScope(p.BITOR['offset'])
-        self.addCode("|")
+        rhs = self.popStack()
+        lhs = self.popStack()
+        self.stack.append(f"{lhs} | {rhs}")
 
     @_('BITXOR')
     def expr(self, p):
         self.endScope(p.BITXOR['offset'])
-        self.addCode("^")
+        rhs = self.popStack()
+        lhs = self.popStack()
+        self.stack.append(f"{lhs} ^ {rhs}")
 
     @_('BITLSHIFT')
     def expr(self, p):
         self.endScope(p.BITLSHIFT['offset'])
-        self.addCode("<<")
+        rhs = self.popStack()
+        lhs = self.popStack()
+        self.stack.append(f"{lhs} << {rhs}")
 
     @_('BITRSHIFT')
     def expr(self, p):
         self.endScope(p.BITRSHIFT['offset'])
-        self.addCode(">>")
+        rhs = self.popStack()
+        lhs = self.popStack()
+        self.stack.append(f"{lhs} >> {rhs}")
 
     @_('BITRSHIFTUNSIGNED')
     def expr(self, p):
         self.endScope(p.BITRSHIFTUNSIGNED['offset'])
-        self.addCode(">>>")
+        rhs = self.popStack()
+        lhs = self.popStack()
+        self.stack.append(f"{lhs} >>> {rhs}")
 
     @_('STRICTEQUAL')
     def expr(self, p):
@@ -436,19 +458,22 @@ class ActionScriptParser(Parser):
         self.endScope(p.STORE['offset'])
         register = p.STORE['value']
         value = self.popStack()
-        param = self.getParam(register)
 
         if register == 0 and not p.STORE['modifier']:
             self.addCode(f"switch ({value})", "{")
             self.nesting_level += 1
             self.switch = True
             self.setParams({'register': register, 'param': value})
-        elif param:
-            self.addCode(f"{param} = {value};")
+        elif register == 0:
+            self.stack.append(value)
         else:
-            param = f"_loc{register}_"
-            self.addCode(f"var {param} = {value};")
-            self.setParams({'register': register, 'param': param})
+            param = self.getParam(register)
+            if param:
+                self.stack.append(f"{param} = {value}")
+            else:
+                param = f"_loc{register}_"
+                self.stack.append(f"var {param} = {value}")
+                self.setParams({'register': register, 'param': param})
 
     @_('DEFINEDICTIONARY')
     def expr(self, p):
@@ -468,12 +493,13 @@ class ActionScriptParser(Parser):
         self.addCode(f"function {values['name']}({paramStr})", "{")
 
         register = 1
-        if values['options'] & FuncOption.preload_parent:
+        if values['options'] & FuncOption.preload_this:
             self.setParams({'register': register, 'param': "this"})
             register += 1
 
-        if values['options'] & FuncOption.preload_global:
+        if values['options'] & FuncOption.preload_root:
             self.setParams({'register': register, 'param': "_root"})
+            register += 1
 
         self.setParams(*values['params'])
         self.setLabel(values['offset'], values['offset'] +
@@ -490,12 +516,17 @@ class ActionScriptParser(Parser):
         values = p.JUMP
         offset = values['offset']
         self.endScope(offset)
-        opType = ScopeOption.jumpEnd
+
         if self.switch:
-            opType = ScopeOption.switchEnd
+            self.setLabel(offset, values['jump'], ScopeOption.switchEnd)
         elif len(self.stack) > 0:
-            opType = ScopeOption.ternaryEnd
-        self.setLabel(offset, values['jump'], opType)
+            self.setLabel(offset, values['jump'], ScopeOption.ternaryEnd)
+        elif values['length'] < 0:
+            expr = list(filter(lambda x: x.offset >=
+                        values['jump'], self.codes))
+            expr[0].code = f"while ({expr[0].code[4:-1]})"
+        else:
+            self.setLabel(offset, values['jump'], ScopeOption.jumpEnd)
 
     @_('GETURL2')
     def expr(self, p):
@@ -519,29 +550,25 @@ class ActionScriptParser(Parser):
     def expr(self, p):
         values = p.IF
         self.endScope(values['offset'])
-        expression = self.popStack()
+        expr = self.popStack()
         modifier = values['modifier']
         option = ScopeOption.ifEnd
         previousLabel = self.labels[-1]
 
-        if previousLabel['type'] == ScopeOption.jumpEnd:
-            self.codes[-2].code = f"else if ({expression})"
+        if previousLabel['type'] == ScopeOption.jumpEnd and self.codes[-2].code[:4] == "else":
+            self.codes[-2].code = f"else if ({expr})"
             self.labels.pop()
         elif modifier == IfOption.caseStmt:
             option = ScopeOption.caseEnd
         elif modifier == IfOption.doWhileStmt:
             option = ScopeOption.whileEnd
             self.insertCode(values['jump'], "do", "{")
-            self.addCode("}", f"while ({expression});")
-        elif modifier == IfOption.whileStmt:
-            option = ScopeOption.whileEnd
-            self.addCode(f"while ({expression})", "{")
-            self.nesting_level += 1
+            self.addCode("}", f"while ({expr});")
         else:
-            self.addCode(f"if ({expression})", "{")
+            self.addCode(f"if ({expr})", "{")
             self.nesting_level += 1
 
-        self.setLabel(values['offset'], values['jump'], option, expression)
+        self.setLabel(values['offset'], values['jump'], option, expr)
 
     @_('ADD')
     def expr(self, p):

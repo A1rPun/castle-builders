@@ -11,30 +11,30 @@ def parseTokens(tokens):
     parser.parse(tokens)
     print(parser.getCode())
 
+def run(text):
+    tokens = lexer.tokenize(text)
+    # printTokens(tokens)
+    parseTokens(tokens)
+
+def runFile(fileName):
+    with open(fileName) as f:
+        content = f.readlines()
+    for line in content:
+        run(line)
+
 if __name__ == '__main__':
-    # test = 'empty'
-    # test = 'push_number'
-    # test = 'equals'
-    # test = 'not_equals'
-    # test = 'lesser'
-    # test = 'lesser_equals'
-    # test = 'greater'
-    # test = 'greater_equals'
     test = 'if_then'
     # test = 'if_then_else'
     # test = 'if_else_if'
-    # test = 'ternary' # FIX
+    # test = 'ternary'
     # test = 'while'
     # test = 'do_while'
     # test = 'switch'
-    # test = 'this'
-    # test = 'root' # FIX
-    # test = 'this_root'
-    # test = 'values' # FIX string
-    # test = 'double_assign' # FIX
-    # test = 'fib' # FIX ternary
+    # test = 'values'
+    # test = 'double_assign'
+    # test = 'fib'
     lexer = ByteLexer()
-    parser = ActionScriptParser(True)
-    tokens = lexer.tokenize(test_data[test][1])
-    # printTokens(tokens)
-    parseTokens(tokens)
+    # parser = ActionScriptParser(True)
+    parser = ActionScriptParser()
+    # run(test_data[test][1])
+    runFile(test)

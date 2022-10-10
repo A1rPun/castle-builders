@@ -7,21 +7,21 @@
 - [x] Lexer
   - [x] Main.swf opcodes
   - [x] All opcodes
-    - [ ] Not and Unknown
 - [x] Parser
   - [x] To P-Code
   - [x] To Actionscript
     - [x] Expressions
     - [x] If Else
-    - [ ] If Else If
-    - [ ] Ternary If Else
+    - [x] If Else If
+    - [x] Ternary If Else
     - [x] Switch case
     - [x] While loop
-    - [ ] Do While
+    - [x] Do While
+    - [x] Loop in loop
     - [ ] For loop
     - [ ] Arithmic precedence
     - [ ] String handling
-    - [ ] While in If
+    - [ ] Unknown byte handling
   - [ ] To Bytes
 - [ ] Reading SWF
   - [x] Code

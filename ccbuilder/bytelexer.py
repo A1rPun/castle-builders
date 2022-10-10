@@ -396,7 +396,8 @@ class ByteLexer(BaseLexer):
     def STORE(self, t):
         offset = self.getOffset()
         nextBytes = self.getNextBytes(3)
-        modifier = self.getRawBytes(1) == "4f " # TODO: sus
+        opCode = self.getRawBytes(1)
+        modifier = opCode == "4f " or opCode == "1d "
         t.value = {
             'offset': offset,
             'value': hexToInt(nextBytes[2]),
@@ -533,15 +534,7 @@ class ByteLexer(BaseLexer):
             modifier = IfOption.doWhileStmt
         else:
             isCase = self.findBytes(-6, 1, " 66")
-            if isCase:
-                modifier = IfOption.caseStmt
-            else:
-                modifier = IfOption.ifStmt
-                hasJump = self.findBytes(length - 5, 5, " 99")
-                if hasJump:
-                    jumpLength = unsignedToSigned(hasJump.split(' ')[:-3:-1])
-                    if jumpLength < 0:
-                        modifier = IfOption.whileStmt
+            modifier = IfOption.caseStmt if isCase else IfOption.ifStmt
 
         t.value = {
             'length': length + 5,

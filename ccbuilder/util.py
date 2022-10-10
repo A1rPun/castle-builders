@@ -37,3 +37,7 @@ def unsignedToSigned(byteArray, bits=16):
     # TODO: better 16bit unsigned to signed conversion plz
     number = hexToInt(''.join(byteArray))
     return number if number < 32768 else (65536 - number) * -1
+
+
+def stripQuote(quotedStr):
+    return quotedStr[1:-1] if quotedStr[0] == '"' else quotedStr
