@@ -559,7 +559,7 @@ class ActionScriptParser(Parser):
         option = ScopeOption.ifEnd
         previousLabel = self.labels[-1]
 
-        if previousLabel['type'] == ScopeOption.jumpEnd and self.codes[-2].code[:4] == "else":
+        if previousLabel['type'] == ScopeOption.jumpEnd and previousLabel['jump'] == values['jump']:
             self.codes[-2].code = f"else if ({expr})"
             self.labels.pop()
         elif modifier == IfOption.caseStmt:
