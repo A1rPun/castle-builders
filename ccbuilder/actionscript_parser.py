@@ -4,6 +4,7 @@ from ccbuilder.util import boolToStr, stripQuote
 from ccbuilder.funcoption import FuncOption
 from ccbuilder.ifoption import IfOption
 from ccbuilder.scopeoption import ScopeOption
+from ccbuilder.action_get_property import ActionGetProperty
 
 
 class Code():
@@ -161,13 +162,12 @@ class ActionScriptParser(Parser):
         elif item.type == 'INTEGER':
             return str(item.value)
         elif item.type == 'DICTLOOKUP':
-            return f"\"{self.constantPool[item.value]}\""
+            return self.constantPool[item.value]
+            # return f"\"{self.constantPool[item.value]}\""
         elif item.type == 'DICTLOOKUPLARGE':
-            return f"\"{self.constantPool[item.value]}\""
+            return self.constantPool[item.value]
+            # return f"\"{self.constantPool[item.value]}\""
         return None
-
-    def parseStruct(self, struct):
-        return filter(lambda x: x, map(self.parseStructItem, struct))
 
     def popStack(self):
         return self.stack.pop() if len(self.stack) else "$$pop()"
@@ -251,9 +251,10 @@ class ActionScriptParser(Parser):
     @_('SETPROP')
     def expr(self, p):
         self.endScope(p.SETPROP['offset'])
-        prop = self.popStack()
         value = self.popStack()
-        self.addCode(f"{prop} = {value};")
+        prop = self.popStack()
+        discard = self.popStack()
+        self.addCode(f"{ActionGetProperty(int(prop)).name} = {value};")
 
     @_('REMOVESPRITE')
     def expr(self, p):
@@ -293,7 +294,7 @@ class ActionScriptParser(Parser):
         argLength = int(float(self.popStack()))
         args = []
         for i in range(0, argLength):
-            args.append(self.popStack())
+            args.append(str(self.popStack()))
         self.stack.append(f"{fn}({','.join(args)})")
 
     @_('RETURN')
@@ -317,7 +318,7 @@ class ActionScriptParser(Parser):
         argLength = int(float(self.popStack()))
         args = []
         for i in range(0, argLength):
-            args.append(self.popStack())
+            args.append(str(self.popStack()))
         self.stack.append(f"new {className}({','.join(args)})")
 
     @_('TYPEDADD')
@@ -390,7 +391,7 @@ class ActionScriptParser(Parser):
         argLength = int(float(self.popStack()))
         args = []
         for i in range(0, argLength):
-            args.append(self.popStack())
+            args.append(str(self.popStack()))
         self.stack.append(f"{obj}.{method}({','.join(args)})")
 
     @_('BITAND')
@@ -509,7 +510,10 @@ class ActionScriptParser(Parser):
     @_('PUSH')
     def expr(self, p):
         self.endScope(p.PUSH['offset'])
-        self.stack += self.parseStruct(p.PUSH['value'])
+        for item in p.PUSH['value']:
+            value = self.parseStructItem(item)
+            if not value == None:
+                self.stack.append(value)
 
     @_('JUMP')
     def expr(self, p):

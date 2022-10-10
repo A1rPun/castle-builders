@@ -40,4 +40,5 @@ def unsignedToSigned(byteArray, bits=16):
 
 
 def stripQuote(quotedStr):
-    return quotedStr[1:-1] if quotedStr[0] == '"' else quotedStr
+    return quotedStr
+    # return quotedStr[1:-1] if quotedStr[0] == '"' else quotedStr
