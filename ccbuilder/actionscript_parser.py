@@ -106,6 +106,12 @@ class ActionScriptParser(Parser):
             if not inSwitch:
                 self.nesting_level -= 1
                 self.addCode("}")
+        elif labelType == ScopeOption.ternaryEnd:
+            expr = self.codes[-3].code[4:-1]
+            rhs = self.popStack()
+            lhs = self.popStack()
+            self.stack.append(f"{expr} ? {lhs} : {rhs}")
+            self.codes = self.codes[:-3]
 
     def error(self, t):
         print(f'[{self}] Illegal character {t}')
@@ -138,8 +144,10 @@ class ActionScriptParser(Parser):
             return str(item.value)
         elif item.type == 'NULL':
             return "null"
+        elif item.type == 'UNDEFINED':
+            return "undefined"
         elif item.type == 'REGISTER':
-            return self.getParam(item.value)
+            return self.getParam(item.value) if item.value > 0 else None
         elif item.type == 'BOOLEAN':
             return boolToStr(item.value)
         elif item.type == 'DOUBLE':
@@ -150,10 +158,10 @@ class ActionScriptParser(Parser):
             return self.constantPool[item.value]
         elif item.type == 'DICTLOOKUPLARGE':
             return self.constantPool[item.value]
-        return "undefined"
+        return None
 
     def parseStruct(self, struct):
-        return map(self.parseStructItem, struct)
+        return filter(lambda x: x, map(self.parseStructItem, struct))
 
     def popStack(self):
         return self.stack.pop() if len(self.stack) else "$$pop()"
@@ -485,8 +493,8 @@ class ActionScriptParser(Parser):
         opType = ScopeOption.jumpEnd
         if self.switch:
             opType = ScopeOption.switchEnd
-        # elif len(self.stack) > 0:
-        #     opType = ScopeOption.ternaryEnd
+        elif len(self.stack) > 0:
+            opType = ScopeOption.ternaryEnd
         self.setLabel(offset, values['jump'], opType)
 
     @_('GETURL2')
