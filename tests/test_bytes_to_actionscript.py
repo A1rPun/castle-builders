@@ -10,7 +10,7 @@ class ByteToActionScript(unittest.TestCase):
         lexer = ByteLexer()
         parser = ActionScriptParser()
         parser.parse(lexer.tokenize(byteString))
-        self.assertEqual(parser.code, actionScript)
+        self.assertEqual(parser.getCode(), actionScript)
 
     def test_empty(self):
         actionScript, byteString = test_data['empty']

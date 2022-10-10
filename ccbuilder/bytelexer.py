@@ -389,7 +389,7 @@ class ByteLexer(BaseLexer):
     def STORE(self, t):
         offset = self.getOffset()
         nextBytes = self.getNextBytes(3)
-        modifier = self.nextByteIs("4f")
+        modifier = self.nextByteIs("4f") # TODO: sus
         t.value = {
             'offset': offset,
             'value': hexToInt(nextBytes[2]),
@@ -406,8 +406,8 @@ class ByteLexer(BaseLexer):
         params = splitBytesOn(nextBytes[2:-1])
         t.value = {
             'pool': list(map(byteArrayToString, params)),
-            'offset': offset + 5,
-            'length': length,
+            'offset': offset,
+            'length': length + 5,
         }
         return t
 
@@ -454,8 +454,8 @@ class ByteLexer(BaseLexer):
             'regCount': regCount,
             'params': params,
             'options': funcOption,
-            'length': fnLength,
-            'offset': offset + length + 3,
+            'length': fnLength + length + 3,
+            'offset': offset,
         }
         return t
 
@@ -481,12 +481,10 @@ class ByteLexer(BaseLexer):
         offset = self.getOffset()
         nextBytes = self.getNextBytes(4)
         length = unsignedToSigned(nextBytes[:-3:-1])
-        # TODO: check bytes after length
-        modifier = self.hasNextByte(length, " 9d") > 0  # oof case
         t.value = {
-            'length': length,
-            'offset': offset + 5,
-            'modifier': modifier,
+            'length': length + 5,
+            'offset': offset,
+            'jump': offset + length + 5,
         }
         return t
 
@@ -513,8 +511,8 @@ class ByteLexer(BaseLexer):
             'name': fnName,
             'paramLength': paramLength,
             'params': params,
-            'length': fnLength,
-            'offset': offset + length + 3,
+            'length': fnLength + length + 3,
+            'offset': offset,
         }
         return t
 
@@ -522,23 +520,26 @@ class ByteLexer(BaseLexer):
     def IF(self, t):
         offset = self.getOffset()
         nextBytes = self.getNextBytes(4)
-        length = hexToInt(f"{nextBytes[3]}{nextBytes[2]}")
-        # TODO: check bytes after length
-        modifier = IfOption.ifStmt
-        isCase = self.findBytes(-6, 1, " 66")
+        length = unsignedToSigned(nextBytes[:-3:-1])
 
-        if isCase:
-            modifier = IfOption.caseStmt
+        if length < 0:
+            modifier = IfOption.doWhileStmt
         else:
-            hasJump = self.findBytes(length - 5, 5, " 99")
-            if hasJump:
-                jumpLength = unsignedToSigned(hasJump.split(' ')[:-3:-1])
-                if jumpLength < 0:
-                    modifier = IfOption.whileStmt
+            isCase = self.findBytes(-6, 1, " 66")
+            if isCase:
+                modifier = IfOption.caseStmt
+            else:
+                modifier = IfOption.ifStmt
+                hasJump = self.findBytes(length - 5, 5, " 99")
+                if hasJump:
+                    jumpLength = unsignedToSigned(hasJump.split(' ')[:-3:-1])
+                    if jumpLength < 0:
+                        modifier = IfOption.whileStmt
 
         t.value = {
-            'length': length,
-            'offset': offset + 5,
+            'length': length + 5,
+            'offset': offset,
+            'jump': offset + length + 5,
             'modifier': modifier,
         }
         return t

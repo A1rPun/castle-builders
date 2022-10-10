@@ -9,7 +9,7 @@ def printTokens(tokens):
 
 def parseTokens(tokens):
     parser.parse(tokens)
-    print(parser.code)
+    print(parser.getCode())
 
 if __name__ == '__main__':
     # test = 'empty'
@@ -22,10 +22,10 @@ if __name__ == '__main__':
     # test = 'greater_equals'
     test = 'if_then'
     # test = 'if_then_else'
-    # test = 'if_else_if' # FIX
+    # test = 'if_else_if'
     # test = 'ternary' # FIX
     # test = 'while'
-    # test = 'do_while' # FIX
+    # test = 'do_while'
     # test = 'switch'
     # test = 'this'
     # test = 'root' # FIX
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     # test = 'double_assign' # FIX
     # test = 'fib' # FIX ternary
     lexer = ByteLexer()
-    parser = ActionScriptParser()
+    parser = ActionScriptParser(True)
     tokens = lexer.tokenize(test_data[test][1])
     # printTokens(tokens)
     parseTokens(tokens)

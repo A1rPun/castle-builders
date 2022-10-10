@@ -1,5 +1,5 @@
 from sly import Lexer
-from ccbuilder.util import splitBytes
+from ccbuilder.util import splitBytes, hexToInt, byteArrayToString
 
 
 class BaseLexer(Lexer):
@@ -13,28 +13,21 @@ class BaseLexer(Lexer):
         self.index += length
         return value
 
-    def getNextBytesFind(self, end = None, byte = " 00"):
-        newIndex = self.text.index(byte, self.index + 1, (end if end is None else self.index + end * 3))
+    def getNextBytesFind(self, end=None, byte=" 00"):
+        newIndex = self.text.index(
+            byte, self.index + 1, (end if end is None else self.index + end * 3))
         # newIndex = self.text.index(byte, self.index + 1)
         nextBytes = self.text[self.index:newIndex]
         value = splitBytes(nextBytes)
         self.index += newIndex - self.index + 3
         return value
 
-    def hasNextByte(self, end = None, byte = " 00"):
-        try:
-            newIndex = self.text.index(byte, self.index + 1, (end if end is None else self.index + end * 3))
-        except ValueError:
-            return -1
-        except Exception:
-            raise
-        return newIndex
-
-    def findBytes(self, start = None, end = None, byte = " 00"):
+    def findBytes(self, start=None, end=None, byte=" 00"):
         try:
             mulStart = start * 3
             mulEnd = end * 3
-            byteString = self.text[self.index + mulStart:self.index + mulStart + mulEnd]
+            byteString = self.text[self.index +
+                                   mulStart:self.index + mulStart + mulEnd]
             return byteString if byteString[:3] == byte else ""
         except ValueError:
             return ""

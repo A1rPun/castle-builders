@@ -10,13 +10,16 @@ class PCodeParser(Parser):
     def __init__(self, names: dict = None):
         self.names = names or {}
         self.constantPool = []
-        self.code = ""
+        self.codes = []
 
     def error(self, t):
         print(f'[{self}] Illegal character {t}')
 
     def printCode(self, code):
-        self.code += f"{code}\n"
+        self.codes.append(code)
+
+    def getCode(self):
+        return '\n'.join(self.codes)
 
     def parseStructItem(self, item):
         if item.type == 'STRING':
@@ -43,6 +46,7 @@ class PCodeParser(Parser):
         values = map(self.parseStructItem, struct)
         return ' '.join(values)
 
+    # TODO: Fix WARNING: shift/reduce conflicts
     @_('expr expr')
     def expr(self, p):
         pass
