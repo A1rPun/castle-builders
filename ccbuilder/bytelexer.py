@@ -93,10 +93,14 @@ class ByteLexer(BaseLexer):
     @_(r"12")
     def NOT(self, t):
         offset = self.getOffset()
-        isFromIf = self.findBytes(0, 1, " 9d")
+        modifier = self.getRawBytes(1) == "9d "
+        if not modifier:
+            opCode = self.getRawBytes(-2)
+            modifier = opCode == "48 12 " or opCode == "49 12 " or opCode == "67 12 "
+
         t.value = {
             'offset': offset,
-            'value': bool(isFromIf),
+            'value': modifier,
         }
         return t
 
@@ -271,14 +275,16 @@ class ByteLexer(BaseLexer):
     @_(r"48")
     def TYPEDLESSTHAN(self, t):
         offset = self.getOffset()
-        modifier = self.nextByteIs("12")
+        nextBytes = self.getRawBytes(2)
+        modifier = nextBytes[:2] == "12" and not nextBytes[3:5] == "9d"
         t.value = {'offset': offset, 'modifier': modifier}
         return t
 
     @_(r"49")
     def TYPEDEQUAL(self, t):
         offset = self.getOffset()
-        modifier = self.nextByteIs("12")
+        nextBytes = self.getRawBytes(2)
+        modifier = nextBytes[:2] == "12" and not nextBytes[3:5] == "9d"
         t.value = {'offset': offset, 'modifier': modifier}
         return t
 
@@ -361,7 +367,8 @@ class ByteLexer(BaseLexer):
     @_(r"67")
     def GREATERTHAN(self, t):
         offset = self.getOffset()
-        modifier = self.nextByteIs("12")
+        nextBytes = self.getRawBytes(2)
+        modifier = nextBytes[:2] == "12" and not nextBytes[3:5] == "9d"
         t.value = {'offset': offset, 'modifier': modifier}
         return t
 
@@ -389,7 +396,7 @@ class ByteLexer(BaseLexer):
     def STORE(self, t):
         offset = self.getOffset()
         nextBytes = self.getNextBytes(3)
-        modifier = self.nextByteIs("4f") # TODO: sus
+        modifier = self.getRawBytes(1) == "4f " # TODO: sus
         t.value = {
             'offset': offset,
             'value': hexToInt(nextBytes[2]),

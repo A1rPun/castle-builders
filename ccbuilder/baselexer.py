@@ -6,6 +6,14 @@ class BaseLexer(Lexer):
     tokens = {}
     ignore = ' \t'
 
+    def getRawBytes(self, count):
+        count = count * 3
+        newIndex = self.index + 1
+        if count < 0:
+            return self.text[newIndex + count:newIndex]
+        else:
+            return self.text[newIndex:newIndex + count]
+
     def getNextBytes(self, num):
         length = num * 3
         nextBytes = self.text[self.index:self.index + length]
@@ -16,7 +24,6 @@ class BaseLexer(Lexer):
     def getNextBytesFind(self, end=None, byte=" 00"):
         newIndex = self.text.index(
             byte, self.index + 1, (end if end is None else self.index + end * 3))
-        # newIndex = self.text.index(byte, self.index + 1)
         nextBytes = self.text[self.index:newIndex]
         value = splitBytes(nextBytes)
         self.index += newIndex - self.index + 3
@@ -54,14 +61,6 @@ class BaseLexer(Lexer):
         offset = self.getOffset()
         t.value = {'offset': offset}
         return t
-
-    def nextByteIs(self, byte):
-        nextIndex = self.index + 1
-        nextByte = self.text[nextIndex:nextIndex + 2]
-        skip = nextByte == byte
-        if skip:
-            self.index += 3
-        return skip
 
     @_(r'\n+')
     def ignore_newline(self, t):
