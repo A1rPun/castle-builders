@@ -96,7 +96,7 @@ class ByteLexer(BaseLexer):
         modifier = self.getRawBytes(1) == "9d "
         if not modifier:
             opCode = self.getRawBytes(-2)
-            modifier = opCode == "48 12 " or opCode == "49 12 " or opCode == "67 12 " and opCode == "70 12 "
+            modifier = opCode == "48 12 " or opCode == "49 12 " or opCode == "67 12 "
 
         t.value = {
             'offset': offset,
@@ -276,7 +276,7 @@ class ByteLexer(BaseLexer):
     def TYPEDLESSTHAN(self, t):
         offset = self.getOffset()
         nextBytes = self.getRawBytes(2)
-        modifier = nextBytes[:2] == "12" or nextBytes[:2] == "70" and not nextBytes[3:5] == "9d"
+        modifier = nextBytes[:2] == "12" and not nextBytes[3:5] == "9d"
         t.value = {'offset': offset, 'modifier': modifier}
         return t
 

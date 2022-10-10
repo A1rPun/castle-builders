@@ -23,18 +23,8 @@ def runFile(fileName):
         run(line)
 
 if __name__ == '__main__':
-    test = 'if_then'
-    # test = 'if_then_else'
-    # test = 'if_else_if'
-    # test = 'ternary'
-    # test = 'while'
-    # test = 'do_while'
-    # test = 'switch'
-    # test = 'values'
-    # test = 'double_assign'
-    # test = 'fib'
+    test = 'fib'
     lexer = ByteLexer()
-    # parser = ActionScriptParser(True)
-    parser = ActionScriptParser()
-    # run(test_data[test][1])
-    runFile(test)
+    parser = ActionScriptParser(True)
+    run(test_data[test][1])
+    # runFile(test)
