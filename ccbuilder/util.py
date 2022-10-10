@@ -33,11 +33,10 @@ def splitBytesOn(byteArray, splitter="00"):
     return newList
 
 
-def unsignedToSigned(byteArray, bits=16):
-    # TODO: better 16bit unsigned to signed conversion plz
+def unsignedToSigned(byteArray, exponent=16):
     number = hexToInt(''.join(byteArray))
-    return number if number < 32768 else (65536 - number) * -1
-
+    exp = 2 ** exponent
+    return number if number < exp / 2 else (exp - number) * -1
 
 def stripQuote(quotedStr):
     return quotedStr

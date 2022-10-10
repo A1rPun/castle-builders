@@ -1,6 +1,6 @@
 import struct
 from ccbuilder.baselexer import BaseLexer
-from ccbuilder.util import splitBytes, hexToInt
+from ccbuilder.util import splitBytes, hexToInt, unsignedToSigned
 
 
 class StructLexer(BaseLexer):
@@ -45,7 +45,7 @@ class StructLexer(BaseLexer):
     @_(r"07")
     def INTEGER(self, t):
         nextBytes = self.getNextBytes(4)[::-1]
-        t.value = hexToInt(''.join(nextBytes))
+        t.value = unsignedToSigned(nextBytes, 32)
         return t
 
     @_(r"08")
