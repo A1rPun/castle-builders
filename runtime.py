@@ -1,5 +1,5 @@
 import argparse
-from ccbuilder.bytelexer import ByteLexer
+from ccbuilder.byte_lexer import ByteLexer
 from ccbuilder.actionscript_parser import ActionScriptParser
 from ccbuilder.pcode_parser import PCodeParser
 

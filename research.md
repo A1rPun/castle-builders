@@ -59,3 +59,15 @@ label2
 jump label4
 label3 (default)
 label4
+
+
+if then else if then else
+---
+if label1
+jump label2
+label1
+if label3
+jump label4
+label3
+label4
+label2

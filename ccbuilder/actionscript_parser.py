@@ -1,5 +1,5 @@
 from sly import Parser
-from ccbuilder.bytelexer import ByteLexer
+from ccbuilder.byte_lexer import ByteLexer
 from ccbuilder.util import boolToStr, stripQuote
 from ccbuilder.funcoption import FuncOption
 from ccbuilder.ifoption import IfOption
